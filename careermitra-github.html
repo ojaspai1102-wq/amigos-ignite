@@ -680,6 +680,66 @@
         font-size: 13px;
       }
 
+      .backend-banner {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 14px;
+        align-items: center;
+        margin-top: 20px;
+        border: 1px solid #bae6fd;
+        border-radius: var(--radius);
+        background: #f0f9ff;
+        padding: 16px;
+      }
+
+      .backend-banner strong {
+        display: block;
+        color: #0f172a;
+      }
+
+      .backend-banner span {
+        display: block;
+        margin-top: 4px;
+        color: #475569;
+        font-size: 14px;
+        line-height: 1.55;
+      }
+
+      .status-dot {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border-radius: 999px;
+        background: white;
+        padding: 8px 11px;
+        color: #075985;
+        font-size: 12px;
+        font-weight: 900;
+        white-space: nowrap;
+      }
+
+      .status-dot::before {
+        content: "";
+        width: 9px;
+        height: 9px;
+        border-radius: 999px;
+        background: #f59e0b;
+      }
+
+      .status-dot.connected::before {
+        background: #10b981;
+      }
+
+      .auth-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
       footer {
         background: var(--slate);
         color: white;
@@ -757,8 +817,14 @@
         .rating-row {
           grid-template-columns: 1fr;
         }
+
+        .backend-banner,
+        .auth-grid {
+          grid-template-columns: 1fr;
+        }
       }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   </head>
   <body>
     <main>
@@ -874,8 +940,72 @@
             the browser as a local demo database.
           </p>
 
+          <div class="backend-banner">
+            <div>
+              <strong>Supabase backend</strong>
+              <span id="backendMessage">
+                Paste your free Supabase project URL and anon key once. After that, profiles,
+                mentors, uploads, and ratings are saved in Supabase instead of only this browser.
+              </span>
+            </div>
+            <div class="status-dot" id="backendStatus">Local demo mode</div>
+          </div>
+
           <div class="account-grid">
             <aside class="panel">
+              <div id="connectionPanel">
+                <div class="panel-title">
+                  <div class="icon-box" aria-hidden="true">DB</div>
+                  <div>
+                    <h2>Connect Supabase</h2>
+                    <p class="small">Use your project URL and anon public key.</p>
+                  </div>
+                </div>
+                <label class="field" for="supabaseUrl">Supabase project URL
+                  <input id="supabaseUrl" type="url" placeholder="https://your-project.supabase.co" />
+                </label>
+                <label class="field" for="supabaseAnonKey">Supabase anon key
+                  <input id="supabaseAnonKey" type="password" placeholder="Paste anon public key" />
+                </label>
+                <div class="mini-actions">
+                  <button class="mini-btn primary" type="button" id="connectSupabase">Connect backend</button>
+                  <button class="mini-btn" type="button" id="forgetSupabase">Forget keys</button>
+                </div>
+                <p class="db-note">
+                  First run the included <strong>supabase-schema.sql</strong> file in Supabase SQL
+                  Editor. Then come back here and connect.
+                </p>
+              </div>
+
+              <div id="authPanel">
+                <div class="panel-title">
+                  <div class="icon-box" aria-hidden="true">AU</div>
+                  <div>
+                    <h2>Login or create account</h2>
+                    <p class="small" id="authStatus">Not signed in.</p>
+                  </div>
+                </div>
+                <div class="auth-grid">
+                  <label class="field" for="authEmail">Email
+                    <input id="authEmail" type="email" placeholder="student@example.com" />
+                  </label>
+                  <label class="field" for="authPassword">Password
+                    <input id="authPassword" type="password" placeholder="At least 6 characters" />
+                  </label>
+                </div>
+                <label class="field" for="authRole">Account type
+                  <select id="authRole">
+                    <option value="student">Student</option>
+                    <option value="mentor">Mentor</option>
+                  </select>
+                </label>
+                <div class="mini-actions">
+                  <button class="mini-btn primary" type="button" id="signUpUser">Create account</button>
+                  <button class="mini-btn" type="button" id="signInUser">Login</button>
+                  <button class="mini-btn" type="button" id="signOutUser">Logout</button>
+                </div>
+              </div>
+
               <div class="tabs" role="tablist" aria-label="Choose account type">
                 <button class="tab active" type="button" data-account="student">Student</button>
                 <button class="tab" type="button" data-account="mentor">Mentor</button>
@@ -909,8 +1039,8 @@
                   <button class="mini-btn" type="button" id="clearStudent">Clear student data</button>
                 </div>
                 <p class="db-note">
-                  Demo database: saved in this browser using local storage. For a real school-wide
-                  system, connect this form to Firebase, Supabase, MongoDB, or MySQL.
+                  Backend mode saves this student record in Supabase. If Supabase is not connected,
+                  the page uses browser storage only as a fallback for demos.
                 </p>
               </div>
 
@@ -1123,7 +1253,7 @@
         ["Week 4", "Take action", "Apply for courses, entrance exams, scholarships and a starter learning module."],
       ];
 
-      const mentors = [
+      const defaultMentors = [
         {
           id: "mentor-health",
           name: "Dr. Meera Kulkarni",
@@ -1150,7 +1280,10 @@
         },
       ];
 
+      let mentorDirectory = [...defaultMentors];
+
       const databaseKey = "careermitraLocalDatabase";
+      const supabaseConfigKey = "careermitraSupabaseConfig";
 
       const defaultDatabase = {
         student: {
@@ -1173,7 +1306,7 @@
         marks: 72,
         budget: "low",
         account: "student",
-        activeMentor: mentors[0].id,
+        activeMentor: defaultMentors[0].id,
       };
 
       function loadDatabase() {
@@ -1192,9 +1325,148 @@
       }
 
       let localDatabase = loadDatabase();
+      let supabaseClient = null;
+      let currentUser = null;
+      let currentProfile = null;
 
       function saveDatabase() {
         localStorage.setItem(databaseKey, JSON.stringify(localDatabase));
+      }
+
+      function setBackendStatus(message, connected = false) {
+        document.getElementById("backendMessage").textContent = message;
+        const status = document.getElementById("backendStatus");
+        status.textContent = connected ? "Supabase connected" : "Local demo mode";
+        status.classList.toggle("connected", connected);
+      }
+
+      function getSupabaseConfig() {
+        try {
+          return JSON.parse(localStorage.getItem(supabaseConfigKey)) || {};
+        } catch {
+          return {};
+        }
+      }
+
+      function createSupabaseClient() {
+        const config = getSupabaseConfig();
+        if (!config.url || !config.anonKey || !window.supabase) return null;
+        return window.supabase.createClient(config.url, config.anonKey);
+      }
+
+      async function loadRemoteData() {
+        if (!supabaseClient) return;
+
+        const mentorsResult = await supabaseClient
+          .from("mentor_profiles")
+          .select("id, full_name, area, qualification, experience, languages")
+          .order("full_name");
+
+        if (!mentorsResult.error && mentorsResult.data?.length) {
+          mentorDirectory = mentorsResult.data.map((mentor) => ({
+            id: mentor.id,
+            name: mentor.full_name,
+            area: mentor.area,
+            qualification: mentor.qualification,
+            experience: mentor.experience,
+            languages: mentor.languages || ["English"],
+          }));
+          if (!mentorDirectory.some((mentor) => mentor.id === state.activeMentor)) {
+            state.activeMentor = mentorDirectory[0].id;
+          }
+        }
+
+        const sessionResult = await supabaseClient.auth.getUser();
+        currentUser = sessionResult.data?.user || null;
+        currentProfile = null;
+
+        if (!currentUser) {
+          document.getElementById("authStatus").textContent = "Supabase connected. Not signed in.";
+          render();
+          return;
+        }
+
+        const profileResult = await supabaseClient
+          .from("profiles")
+          .select("*")
+          .eq("id", currentUser.id)
+          .maybeSingle();
+
+        if (!profileResult.error && profileResult.data) {
+          currentProfile = profileResult.data;
+          if (currentProfile.role === "student") {
+            localDatabase.student = {
+              name: currentProfile.full_name || "",
+              className: currentProfile.class_stream || "",
+              village: currentProfile.village || "",
+              goal: currentProfile.career_goal || "",
+              uploads: localDatabase.student.uploads || [],
+            };
+          }
+          state.account = currentProfile.role;
+        }
+
+        const uploadResult = await supabaseClient
+          .from("exam_results")
+          .select("file_name, file_path, file_type, file_size, uploaded_at")
+          .eq("student_id", currentUser.id)
+          .order("uploaded_at", { ascending: false });
+
+        if (!uploadResult.error && uploadResult.data) {
+          localDatabase.student.uploads = uploadResult.data.map((file) => ({
+            name: file.file_name,
+            size: file.file_size || 0,
+            type: file.file_type || "unknown",
+            uploadedAt: file.uploaded_at,
+            path: file.file_path,
+          }));
+        }
+
+        const ratingResult = await supabaseClient
+          .from("ratings")
+          .select("to_mentor_id, to_user_id, rating")
+          .eq("from_user_id", currentUser.id)
+          .order("created_at", { ascending: false });
+
+        if (!ratingResult.error && ratingResult.data) {
+          localDatabase.ratings.studentToMentor = {};
+          ratingResult.data.forEach((rating) => {
+            if (rating.to_mentor_id && !localDatabase.ratings.studentToMentor[rating.to_mentor_id]) {
+              localDatabase.ratings.studentToMentor[rating.to_mentor_id] = rating.rating + " stars";
+            }
+          });
+        }
+
+        document.getElementById("authStatus").textContent =
+          "Signed in as " + (currentProfile?.role || "user") + ": " + currentUser.email;
+        render();
+      }
+
+      async function connectSupabaseFromInputs() {
+        const url = document.getElementById("supabaseUrl").value.trim();
+        const anonKey = document.getElementById("supabaseAnonKey").value.trim();
+        if (!url || !anonKey) {
+          alert("Paste both the Supabase project URL and anon key.");
+          return;
+        }
+
+        localStorage.setItem(supabaseConfigKey, JSON.stringify({ url, anonKey }));
+        supabaseClient = createSupabaseClient();
+        setBackendStatus("Connected. Login or create student and mentor accounts to save data online.", true);
+        await loadRemoteData();
+      }
+
+      async function bootSupabase() {
+        const config = getSupabaseConfig();
+        document.getElementById("supabaseUrl").value = config.url || "";
+        document.getElementById("supabaseAnonKey").value = config.anonKey || "";
+        supabaseClient = createSupabaseClient();
+        if (!supabaseClient) {
+          setBackendStatus("Local demo database is active. Connect Supabase to save shared online data.");
+          return;
+        }
+        setBackendStatus("Supabase is connected. Login to save student data, uploads, and ratings online.", true);
+        await loadRemoteData();
       }
 
       function getMatches() {
@@ -1285,7 +1557,7 @@
         document.getElementById("studentVillage").value = localDatabase.student.village || "";
         document.getElementById("studentGoal").value = localDatabase.student.goal || "";
 
-        document.getElementById("mentorSelect").innerHTML = mentors
+        document.getElementById("mentorSelect").innerHTML = mentorDirectory
           .map((mentor) => `<option value="${mentor.id}">${mentor.name} - ${mentor.area}</option>`)
           .join("");
         document.getElementById("mentorSelect").value = state.activeMentor;
@@ -1314,7 +1586,7 @@
                 )
                 .join("");
 
-        document.getElementById("mentorCards").innerHTML = mentors
+        document.getElementById("mentorCards").innerHTML = mentorDirectory
           .map((mentor) => {
             const studentRating = localDatabase.ratings.studentToMentor[mentor.id] || "Not rated";
             const mentorRating = localDatabase.ratings.mentorToStudent[mentor.id] || "Not rated";
@@ -1333,7 +1605,8 @@
           })
           .join("");
 
-        const activeMentor = mentors.find((mentor) => mentor.id === state.activeMentor);
+        const activeMentor =
+          mentorDirectory.find((mentor) => mentor.id === state.activeMentor) || mentorDirectory[0];
         const studentRating = localDatabase.ratings.studentToMentor[state.activeMentor] || "Not rated";
         const mentorRating = localDatabase.ratings.mentorToStudent[state.activeMentor] || "Not rated";
         document.getElementById("ratingSummary").innerHTML = `
@@ -1386,6 +1659,79 @@
         render();
       });
 
+      document.getElementById("connectSupabase").addEventListener("click", connectSupabaseFromInputs);
+
+      document.getElementById("forgetSupabase").addEventListener("click", async () => {
+        if (supabaseClient) await supabaseClient.auth.signOut();
+        localStorage.removeItem(supabaseConfigKey);
+        supabaseClient = null;
+        currentUser = null;
+        currentProfile = null;
+        mentorDirectory = [...defaultMentors];
+        setBackendStatus("Supabase keys removed. Local demo database is active.");
+        render();
+      });
+
+      document.getElementById("signUpUser").addEventListener("click", async () => {
+        if (!supabaseClient) {
+          alert("Connect Supabase first.");
+          return;
+        }
+
+        const email = document.getElementById("authEmail").value.trim();
+        const password = document.getElementById("authPassword").value;
+        const role = document.getElementById("authRole").value;
+        const fullName = document.getElementById("studentName").value.trim() || email.split("@")[0];
+
+        const signUpResult = await supabaseClient.auth.signUp({ email, password });
+        if (signUpResult.error) {
+          alert(signUpResult.error.message);
+          return;
+        }
+
+        currentUser = signUpResult.data.user;
+        if (currentUser) {
+          await supabaseClient.from("profiles").upsert({
+            id: currentUser.id,
+            role,
+            full_name: fullName,
+            village: document.getElementById("studentVillage").value.trim(),
+            class_stream: document.getElementById("studentClass").value.trim(),
+            career_goal: document.getElementById("studentGoal").value.trim(),
+            updated_at: new Date().toISOString(),
+          });
+        }
+
+        alert("Account created. If Supabase email confirmation is enabled, confirm the email before login.");
+        await loadRemoteData();
+      });
+
+      document.getElementById("signInUser").addEventListener("click", async () => {
+        if (!supabaseClient) {
+          alert("Connect Supabase first.");
+          return;
+        }
+
+        const email = document.getElementById("authEmail").value.trim();
+        const password = document.getElementById("authPassword").value;
+        const loginResult = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (loginResult.error) {
+          alert(loginResult.error.message);
+          return;
+        }
+
+        currentUser = loginResult.data.user;
+        await loadRemoteData();
+      });
+
+      document.getElementById("signOutUser").addEventListener("click", async () => {
+        if (supabaseClient) await supabaseClient.auth.signOut();
+        currentUser = null;
+        currentProfile = null;
+        document.getElementById("authStatus").textContent = "Signed out.";
+        render();
+      });
+
       document.querySelectorAll(".tab").forEach((tab) => {
         tab.addEventListener("click", () => {
           state.account = tab.dataset.account;
@@ -1398,12 +1744,33 @@
         render();
       });
 
-      document.getElementById("saveStudent").addEventListener("click", () => {
+      document.getElementById("saveStudent").addEventListener("click", async () => {
         localDatabase.student.name = document.getElementById("studentName").value.trim();
         localDatabase.student.className = document.getElementById("studentClass").value.trim();
         localDatabase.student.village = document.getElementById("studentVillage").value.trim();
         localDatabase.student.goal = document.getElementById("studentGoal").value.trim();
         saveDatabase();
+
+        if (supabaseClient && currentUser) {
+          const saveResult = await supabaseClient.from("profiles").upsert({
+            id: currentUser.id,
+            role: currentProfile?.role || "student",
+            full_name: localDatabase.student.name || currentUser.email,
+            village: localDatabase.student.village,
+            class_stream: localDatabase.student.className,
+            career_goal: localDatabase.student.goal,
+            updated_at: new Date().toISOString(),
+          });
+
+          if (saveResult.error) {
+            alert(saveResult.error.message);
+            return;
+          }
+
+          await loadRemoteData();
+          return;
+        }
+
         render();
       });
 
@@ -1415,6 +1782,39 @@
 
       document.getElementById("examUpload").addEventListener("change", async (event) => {
         const files = Array.from(event.target.files || []);
+
+        if (supabaseClient && currentUser) {
+          for (const file of files) {
+            const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+            const filePath = `${currentUser.id}/${Date.now()}-${cleanName}`;
+            const uploadResult = await supabaseClient.storage
+              .from("exam-results")
+              .upload(filePath, file, { upsert: false });
+
+            if (uploadResult.error) {
+              alert(uploadResult.error.message);
+              return;
+            }
+
+            const rowResult = await supabaseClient.from("exam_results").insert({
+              student_id: currentUser.id,
+              file_name: file.name,
+              file_path: filePath,
+              file_type: file.type || "unknown",
+              file_size: file.size,
+            });
+
+            if (rowResult.error) {
+              alert(rowResult.error.message);
+              return;
+            }
+          }
+
+          event.target.value = "";
+          await loadRemoteData();
+          return;
+        }
+
         const uploadedFiles = await Promise.all(
           files.map(
             (file) =>
@@ -1439,22 +1839,59 @@
         render();
       });
 
-      document.getElementById("saveStudentRating").addEventListener("click", () => {
+      document.getElementById("saveStudentRating").addEventListener("click", async () => {
         localDatabase.ratings.studentToMentor[state.activeMentor] =
           document.getElementById("studentRatesMentor").value + " stars";
         saveDatabase();
+
+        if (supabaseClient && currentUser) {
+          const ratingResult = await supabaseClient.from("ratings").insert({
+            from_user_id: currentUser.id,
+            to_mentor_id: state.activeMentor,
+            rating: Number(document.getElementById("studentRatesMentor").value),
+            comment: "Student rated mentor from CareerMitra",
+          });
+
+          if (ratingResult.error) {
+            alert(ratingResult.error.message);
+            return;
+          }
+
+          await loadRemoteData();
+          return;
+        }
+
         render();
       });
 
-      document.getElementById("saveMentorRating").addEventListener("click", () => {
+      document.getElementById("saveMentorRating").addEventListener("click", async () => {
         localDatabase.ratings.mentorToStudent[state.activeMentor] =
           document.getElementById("mentorRatesStudent").value + " stars";
         saveDatabase();
+
+        if (supabaseClient && currentUser) {
+          const ratingResult = await supabaseClient.from("ratings").insert({
+            from_user_id: currentUser.id,
+            rated_student_name: localDatabase.student.name || "Visible student record",
+            rating: Number(document.getElementById("mentorRatesStudent").value),
+            comment: "Mentor demo rating for the visible student record",
+          });
+
+          if (ratingResult.error) {
+            alert(ratingResult.error.message);
+            return;
+          }
+
+          await loadRemoteData();
+          return;
+        }
+
         render();
       });
 
       renderStaticLists();
       render();
+      bootSupabase();
     </script>
   </body>
 </html>
