@@ -1308,6 +1308,7 @@
       let supabaseClient = null;
       let currentUser = null;
       let currentProfile = null;
+      let localSession = null;
 
       function saveDatabase() {
         localStorage.setItem(databaseKey, JSON.stringify(localDatabase));
@@ -1423,6 +1424,8 @@
         supabaseClient = createSupabaseClient();
         if (!supabaseClient) {
           setBackendStatus("Supabase config is missing. The page is using local demo storage.");
+          document.getElementById("authStatus").textContent =
+            "Backend config missing. Account buttons will use local demo mode.";
           return;
         }
         setBackendStatus("Supabase is connected. Login to save student data, uploads, and ratings online.", true);
@@ -1621,7 +1624,14 @@
 
       document.getElementById("signUpUser").addEventListener("click", async () => {
         if (!supabaseClient) {
-          alert("Connect Supabase first.");
+          const email = document.getElementById("authEmail").value.trim();
+          const role = document.getElementById("authRole").value;
+          localSession = { email: email || "demo-user@careermitra.local", role };
+          state.account = role;
+          document.getElementById("authStatus").textContent =
+            "Local demo account created as " + role + ". Add Supabase config to save online.";
+          setBackendStatus("Using local demo account. Supabase config is still missing.");
+          render();
           return;
         }
 
@@ -1655,7 +1665,14 @@
 
       document.getElementById("signInUser").addEventListener("click", async () => {
         if (!supabaseClient) {
-          alert("Connect Supabase first.");
+          const email = document.getElementById("authEmail").value.trim();
+          const role = document.getElementById("authRole").value;
+          localSession = { email: email || "demo-user@careermitra.local", role };
+          state.account = role;
+          document.getElementById("authStatus").textContent =
+            "Logged in locally as " + role + ". Add Supabase config to use the online backend.";
+          setBackendStatus("Using local demo login. Supabase config is still missing.");
+          render();
           return;
         }
 
@@ -1675,7 +1692,10 @@
         if (supabaseClient) await supabaseClient.auth.signOut();
         currentUser = null;
         currentProfile = null;
-        document.getElementById("authStatus").textContent = "Signed out.";
+        localSession = null;
+        document.getElementById("authStatus").textContent = supabaseClient
+          ? "Signed out."
+          : "Signed out of local demo mode.";
         render();
       });
 
