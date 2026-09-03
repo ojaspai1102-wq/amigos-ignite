@@ -1,0 +1,961 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CareerMitra - Rural Student Career Navigator</title>
+    <meta
+      name="description"
+      content="A simple multilingual career guidance platform for rural students with personalized pathways, scholarships, entrance exams, and learning roadmaps."
+    />
+    <meta property="og:title" content="CareerMitra - Rural Student Career Navigator" />
+    <meta
+      property="og:description"
+      content="Personalized career pathways, eligibility guidance, scholarships, entrance exams, and roadmaps for rural students."
+    />
+    <meta property="og:image" content="public/og.png" />
+    <style>
+      :root {
+        --bg: #f7fbf5;
+        --ink: #102033;
+        --muted: #5b6875;
+        --line: #dce8dd;
+        --card: #ffffff;
+        --emerald: #047857;
+        --emerald-dark: #065f46;
+        --emerald-soft: #e6f6ee;
+        --sky-soft: #e6f4fb;
+        --amber: #f2b632;
+        --amber-soft: #fff1c9;
+        --slate: #0f172a;
+        --shadow: 0 18px 46px rgba(15, 23, 42, 0.1);
+        --radius: 8px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Arial, sans-serif;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+
+      .hero {
+        position: relative;
+        overflow: hidden;
+        border-bottom: 1px solid var(--line);
+        background: linear-gradient(135deg, #f7fbf5 0%, #eaf7f4 42%, #fff8e6 100%);
+      }
+
+      .hero::after {
+        content: "";
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        height: 120px;
+        background: linear-gradient(to top, var(--bg), rgba(247, 251, 245, 0));
+        pointer-events: none;
+      }
+
+      .wrap {
+        width: min(100% - 32px, 1180px);
+        margin: 0 auto;
+      }
+
+      .hero-grid {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        min-height: 720px;
+        grid-template-columns: 0.98fr 1.02fr;
+        gap: 32px;
+        align-items: center;
+        padding: 24px 0;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 20px;
+        border: 1px solid #b8ead3;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.84);
+        padding: 9px 12px;
+        color: #064e3b;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        max-width: 720px;
+        color: #081524;
+        font-size: clamp(38px, 6vw, 72px);
+        line-height: 1.03;
+        letter-spacing: 0;
+      }
+
+      .hero-copy {
+        max-width: 610px;
+        margin-top: 20px;
+        color: #475569;
+        font-size: 18px;
+        line-height: 1.65;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 28px;
+      }
+
+      .btn {
+        display: inline-flex;
+        min-height: 46px;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border-radius: 6px;
+        padding: 12px 18px;
+        font-size: 14px;
+        font-weight: 800;
+        transition:
+          transform 0.18s ease,
+          background 0.18s ease,
+          border 0.18s ease;
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
+      }
+
+      .btn.primary {
+        background: var(--emerald);
+        color: white;
+        box-shadow: 0 12px 26px rgba(4, 120, 87, 0.18);
+      }
+
+      .btn.primary:hover {
+        background: var(--emerald-dark);
+      }
+
+      .btn.secondary {
+        border: 1px solid #cbd5e1;
+        background: rgba(255, 255, 255, 0.86);
+        color: #0f172a;
+      }
+
+      .stats {
+        display: grid;
+        max-width: 560px;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-top: 34px;
+      }
+
+      .stat {
+        border-left: 3px solid var(--emerald);
+        background: rgba(255, 255, 255, 0.56);
+        padding: 10px 12px;
+      }
+
+      .stat strong {
+        display: block;
+        color: #0f172a;
+        font-size: 26px;
+        line-height: 1;
+      }
+
+      .stat span {
+        display: block;
+        margin-top: 6px;
+        color: #475569;
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+      }
+
+      .hero-image {
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.7);
+        border-radius: var(--radius);
+        background: white;
+        box-shadow: var(--shadow);
+      }
+
+      .hero-image img {
+        display: block;
+        width: 100%;
+        aspect-ratio: 16 / 10;
+        object-fit: cover;
+      }
+
+      .section {
+        border-bottom: 1px solid var(--line);
+        background: white;
+        padding: 44px 0;
+      }
+
+      .navigator {
+        display: grid;
+        grid-template-columns: 360px minmax(0, 1fr);
+        gap: 24px;
+      }
+
+      .panel,
+      .path-card,
+      .info-card,
+      .road-card {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--card);
+        box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
+      }
+
+      .panel {
+        align-self: start;
+        padding: 20px;
+      }
+
+      .panel-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+
+      .icon-box {
+        display: inline-flex;
+        width: 42px;
+        height: 42px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 7px;
+        background: var(--emerald-soft);
+        color: var(--emerald-dark);
+        font-weight: 900;
+      }
+
+      .panel-title h2 {
+        font-size: 19px;
+      }
+
+      .small {
+        margin-top: 3px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      label,
+      .field-label {
+        display: block;
+        margin-top: 18px;
+        color: #1f2937;
+        font-size: 14px;
+        font-weight: 800;
+      }
+
+      label:first-of-type {
+        margin-top: 0;
+      }
+
+      select,
+      input[type="range"] {
+        width: 100%;
+      }
+
+      select {
+        height: 44px;
+        margin-top: 8px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        background: white;
+        padding: 0 12px;
+        color: #111827;
+        outline: none;
+      }
+
+      select:focus,
+      button:focus,
+      a:focus {
+        outline: 4px solid #c9f4df;
+        outline-offset: 2px;
+      }
+
+      input[type="range"] {
+        margin-top: 12px;
+        accent-color: var(--emerald);
+      }
+
+      .interest-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        margin-top: 8px;
+      }
+
+      .interest {
+        min-height: 64px;
+        border: 1px solid #dfe6e1;
+        border-radius: 6px;
+        background: white;
+        color: #334155;
+        cursor: pointer;
+        padding: 12px;
+        text-align: left;
+        font-size: 14px;
+        font-weight: 800;
+      }
+
+      .interest.active {
+        border-color: var(--emerald);
+        background: #ecfdf5;
+        color: #052e25;
+      }
+
+      .section-head {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+
+      .kicker {
+        color: var(--emerald);
+        font-size: 13px;
+        font-weight: 900;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      h2 {
+        margin-top: 4px;
+        color: #0f172a;
+        font-size: 34px;
+        line-height: 1.15;
+        letter-spacing: 0;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border-radius: 6px;
+        background: var(--amber-soft);
+        padding: 10px 12px;
+        color: #5f3b00;
+        font-size: 14px;
+        font-weight: 900;
+        white-space: nowrap;
+      }
+
+      .path-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+      }
+
+      .path-card {
+        padding: 20px;
+      }
+
+      .card-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .path-card h3 {
+        color: #0f172a;
+        font-size: 19px;
+        line-height: 1.2;
+      }
+
+      .score {
+        flex: 0 0 auto;
+        border-radius: 6px;
+        background: var(--emerald);
+        padding: 6px 8px;
+        color: white;
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .path-card p,
+      dd,
+      .info-card p,
+      .road-card p,
+      .footer-card p {
+        color: #526070;
+        font-size: 14px;
+        line-height: 1.65;
+      }
+
+      .path-card p {
+        margin-top: 12px;
+      }
+
+      dl {
+        margin: 16px 0 0;
+      }
+
+      dt {
+        margin-top: 12px;
+        color: #111827;
+        font-size: 14px;
+        font-weight: 900;
+      }
+
+      dd {
+        margin: 4px 0 0;
+      }
+
+      .soft-section {
+        background: var(--bg);
+        padding: 48px 0;
+      }
+
+      .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 34px;
+      }
+
+      .title-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .title-row.sky .icon-box {
+        background: var(--sky-soft);
+        color: #075985;
+      }
+
+      .title-row.amber .icon-box {
+        background: var(--amber-soft);
+        color: #704300;
+      }
+
+      .stack {
+        display: grid;
+        gap: 12px;
+        margin-top: 20px;
+      }
+
+      .info-card {
+        padding: 16px;
+      }
+
+      .road-card {
+        display: grid;
+        grid-template-columns: 78px minmax(0, 1fr);
+        gap: 14px;
+        padding: 16px;
+      }
+
+      .week {
+        align-self: start;
+        border-radius: 6px;
+        background: var(--amber);
+        padding: 12px 8px;
+        color: #172033;
+        text-align: center;
+        font-size: 14px;
+        font-weight: 900;
+      }
+
+      .road-card h3 {
+        color: #0f172a;
+        font-size: 16px;
+      }
+
+      .road-card p {
+        margin-top: 4px;
+      }
+
+      footer {
+        background: var(--slate);
+        color: white;
+        padding: 42px 0;
+      }
+
+      .footer-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 28px;
+      }
+
+      .footer-card h2 {
+        margin: 8px 0 0;
+        color: white;
+        font-size: 21px;
+      }
+
+      .footer-card p {
+        margin-top: 8px;
+        color: #cbd5e1;
+      }
+
+      .footer-icon {
+        color: #86efac;
+        font-size: 24px;
+      }
+
+      @media (max-width: 980px) {
+        .hero-grid,
+        .navigator,
+        .two-col,
+        .footer-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .hero-grid {
+          min-height: auto;
+          padding: 42px 0;
+        }
+
+        .path-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 620px) {
+        .wrap {
+          width: min(100% - 24px, 1180px);
+        }
+
+        h1 {
+          font-size: 38px;
+        }
+
+        h2 {
+          font-size: 28px;
+        }
+
+        .stats,
+        .interest-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .section-head {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .pill {
+          white-space: normal;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="hero">
+        <div class="wrap hero-grid">
+          <div>
+            <div class="eyebrow"><span aria-hidden="true">A</span><span id="badge">Rural student career opportunity navigator</span></div>
+            <h1 id="title">Find a practical career path from your interests.</h1>
+            <p class="hero-copy" id="subtitle">
+              CareerMitra helps students compare careers, entrance exams, scholarships,
+              courses, and next steps in one simple guidance flow.
+            </p>
+            <div class="actions">
+              <a class="btn primary" href="#navigator"><span aria-hidden="true">Search</span><span id="startText">Build my guidance plan</span></a>
+              <a class="btn secondary" href="#roadmap"><span aria-hidden="true">Map</span><span>View roadmap</span></a>
+            </div>
+            <div class="stats" aria-label="Project highlights">
+              <div class="stat"><strong>6</strong><span>career clusters</span></div>
+              <div class="stat"><strong>3</strong><span>demo languages</span></div>
+              <div class="stat"><strong>30 min</strong><span>counselling flow</span></div>
+            </div>
+          </div>
+          <div class="hero-image">
+            <img
+              src="public/careermitra-hero.png"
+              alt="Rural students exploring career pathways with CareerMitra"
+            />
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="navigator">
+        <div class="wrap navigator">
+          <aside class="panel">
+            <div class="panel-title">
+              <div class="icon-box" aria-hidden="true">P</div>
+              <div>
+                <h2 id="profileTitle">Student profile</h2>
+                <p class="small">Tune the demo inputs.</p>
+              </div>
+            </div>
+
+            <label for="language">Guidance language</label>
+            <select id="language">
+              <option>English</option>
+              <option>Hindi</option>
+              <option>Marathi</option>
+            </select>
+
+            <label for="stream">Current background</label>
+            <select id="stream">
+              <option value="science">Class 11-12 Science</option>
+              <option value="commerce">Commerce</option>
+              <option value="arts">Arts / Humanities</option>
+              <option value="vocational">ITI / Vocational</option>
+              <option value="any">Not decided yet</option>
+            </select>
+
+            <p class="field-label">Main interest</p>
+            <div class="interest-grid" id="interestGrid"></div>
+
+            <label for="marks">Marks estimate: <span id="marksValue">72</span>%</label>
+            <input id="marks" type="range" min="35" max="98" value="72" />
+
+            <label for="budget">Family budget preference</label>
+            <select id="budget">
+              <option value="low">Low cost first</option>
+              <option value="medium">Balanced options</option>
+              <option value="open">Open to private options</option>
+            </select>
+          </aside>
+
+          <div>
+            <div class="section-head">
+              <div>
+                <p class="kicker">Personalized output</p>
+                <h2 id="matchesTitle">Recommended pathways</h2>
+              </div>
+              <div class="pill">Demo recommendation engine</div>
+            </div>
+            <div class="path-grid" id="pathways"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="soft-section">
+        <div class="wrap two-col">
+          <div>
+            <div class="title-row sky">
+              <div class="icon-box" aria-hidden="true">S</div>
+              <h2 id="opportunitiesTitle">Opportunity finder</h2>
+            </div>
+            <div class="stack" id="scholarships"></div>
+          </div>
+
+          <div id="roadmap">
+            <div class="title-row amber">
+              <div class="icon-box" aria-hidden="true">R</div>
+              <h2 id="roadmapTitle">Learning roadmap</h2>
+            </div>
+            <div class="stack" id="roadmapList"></div>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        <div class="wrap footer-grid">
+          <div class="footer-card">
+            <div class="footer-icon" aria-hidden="true">Study</div>
+            <h2>For students</h2>
+            <p>Simple questions, local-language explanations, and career options that do not assume big-city exposure.</p>
+          </div>
+          <div class="footer-card">
+            <div class="footer-icon" aria-hidden="true">Guide</div>
+            <h2>For mentors</h2>
+            <p>A clean counselling script with eligibility checks, document reminders, and course suggestions.</p>
+          </div>
+          <div class="footer-card">
+            <div class="footer-icon" aria-hidden="true">Build</div>
+            <h2>For the team</h2>
+            <p>A month-sized build: static data first, then admin uploads, then district-specific opportunity feeds.</p>
+          </div>
+        </div>
+      </footer>
+    </main>
+
+    <script>
+      const copy = {
+        English: {
+          badge: "Rural student career opportunity navigator",
+          title: "Find a practical career path from your interests.",
+          subtitle:
+            "CareerMitra helps students compare careers, entrance exams, scholarships, courses, and next steps in one simple guidance flow.",
+          start: "Build my guidance plan",
+          profile: "Student profile",
+          matches: "Recommended pathways",
+          opportunities: "Opportunity finder",
+          roadmap: "Learning roadmap",
+        },
+        Hindi: {
+          badge: "Gaon ke students ke liye career navigator",
+          title: "Apni ruchi se practical career raasta dhoondo.",
+          subtitle:
+            "CareerMitra careers, exams, scholarships, courses aur next steps ko ek simple flow mein dikhata hai.",
+          start: "Mera guidance plan banao",
+          profile: "Student profile",
+          matches: "Recommended pathways",
+          opportunities: "Opportunity finder",
+          roadmap: "Learning roadmap",
+        },
+        Marathi: {
+          badge: "Gramin vidyarthyan sathi career navigator",
+          title: "Tumchya interest nusar yogya career marg shodha.",
+          subtitle:
+            "CareerMitra careers, exams, scholarships, courses ani next steps ekatra dakhavto.",
+          start: "Maza guidance plan banao",
+          profile: "Student profile",
+          matches: "Recommended pathways",
+          opportunities: "Opportunity finder",
+          roadmap: "Learning roadmap",
+        },
+      };
+
+      const interests = [
+        ["technology", "Technology"],
+        ["health", "Health care"],
+        ["agriculture", "Agriculture"],
+        ["business", "Business"],
+        ["government", "Govt jobs"],
+        ["creative", "Creative work"],
+      ];
+
+      const pathways = [
+        {
+          title: "Diploma in Computer Engineering",
+          fit: ["technology"],
+          streams: ["science", "vocational", "any"],
+          level: "Class 10 or 12",
+          eligibility: "Class 10 pass, basic maths comfort, state polytechnic admission.",
+          exams: ["State Polytechnic CET", "ITI/Polytechnic counselling"],
+          skills: ["Computer basics", "Logic building", "English typing"],
+          outcome: "Junior developer, technician, support engineer, later B.Tech lateral entry.",
+        },
+        {
+          title: "Nursing and Community Health",
+          fit: ["health"],
+          streams: ["science"],
+          level: "Class 12 Science",
+          eligibility: "Class 12 PCB preferred, age and institute rules vary by state.",
+          exams: ["ANM/GNM admissions", "State nursing entrance"],
+          skills: ["Biology basics", "Communication", "First aid"],
+          outcome: "Nursing assistant, GNM/ANM pathway, community health worker.",
+        },
+        {
+          title: "Agri-Tech and Farm Management",
+          fit: ["agriculture", "technology", "business"],
+          streams: ["science", "vocational", "any"],
+          level: "Class 10 or 12",
+          eligibility: "Interest in farming, soil, machinery, supply chains, or agri business.",
+          exams: ["Agriculture diploma admissions", "ICAR after Class 12"],
+          skills: ["Crop planning", "Mobile tools", "Basic accounts"],
+          outcome: "Agri assistant, farm manager, agri startup helper, extension services.",
+        },
+        {
+          title: "Banking, Accounts and Micro-Enterprise",
+          fit: ["business", "government"],
+          streams: ["commerce", "arts", "any"],
+          level: "Class 12",
+          eligibility: "Class 12 pass, basic maths, interest in accounts or local enterprise.",
+          exams: ["CUET", "Clerk exams after graduation", "Skill India courses"],
+          skills: ["Bookkeeping", "UPI and digital payments", "Customer handling"],
+          outcome: "Accounts assistant, banking preparation, local business operator.",
+        },
+        {
+          title: "Teacher Training and Social Work",
+          fit: ["government", "creative"],
+          streams: ["arts", "commerce", "science", "any"],
+          level: "Class 12 or Graduation",
+          eligibility: "Class 12 for D.El.Ed routes; graduation for B.Ed routes.",
+          exams: ["D.El.Ed admissions", "TET after teacher training"],
+          skills: ["Public speaking", "Child learning", "Local language strength"],
+          outcome: "Primary teacher route, NGO educator, community learning coordinator.",
+        },
+        {
+          title: "Design, Media and Local Content Creation",
+          fit: ["creative", "technology", "business"],
+          streams: ["arts", "commerce", "science", "vocational", "any"],
+          level: "Class 10 or 12",
+          eligibility: "Portfolio and practice matter more than stream for many beginner roles.",
+          exams: ["Design institute tests", "Skill certificate courses"],
+          skills: ["Visual sense", "Storytelling", "Phone video editing"],
+          outcome: "Content creator, design assistant, local business marketing support.",
+        },
+      ];
+
+      const scholarships = [
+        "National Scholarship Portal: category, income, minority, disability and merit schemes.",
+        "State post-matric scholarships: fee support for eligible Class 11, 12, diploma and degree students.",
+        "AICTE Pragati/Saksham: technical education support for eligible students.",
+        "Local CSR and NGO scholarships: add district-level listings through a teacher/admin panel.",
+      ];
+
+      const roadmap = [
+        ["Week 1", "Know yourself", "Enter interests, stream, marks range, family budget, language and location."],
+        ["Week 2", "Shortlist options", "Compare 3 career paths by eligibility, cost, duration, exams and local access."],
+        ["Week 3", "Prepare documents", "Track certificates, mark sheets, Aadhaar, bank account and photos."],
+        ["Week 4", "Take action", "Apply for courses, entrance exams, scholarships and a starter learning module."],
+      ];
+
+      const state = {
+        language: "English",
+        stream: "science",
+        interest: "technology",
+        marks: 72,
+        budget: "low",
+      };
+
+      function getMatches() {
+        return pathways
+          .map((path) => {
+            let score = 38;
+            if (path.fit.includes(state.interest)) score += 34;
+            if (path.streams.includes(state.stream) || path.streams.includes("any")) score += 18;
+            if (state.marks >= 75) score += 6;
+            if (state.budget === "low" && path.level.includes("10")) score += 4;
+            return { ...path, score: Math.min(score, 98) };
+          })
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 3);
+      }
+
+      function renderInterests() {
+        const grid = document.getElementById("interestGrid");
+        grid.innerHTML = interests
+          .map(([id, label]) => {
+            const active = state.interest === id ? " active" : "";
+            return `<button class="interest${active}" type="button" data-interest="${id}">${label}</button>`;
+          })
+          .join("");
+
+        grid.querySelectorAll("button").forEach((button) => {
+          button.addEventListener("click", () => {
+            state.interest = button.dataset.interest;
+            render();
+          });
+        });
+      }
+
+      function renderPathways() {
+        document.getElementById("pathways").innerHTML = getMatches()
+          .map(
+            (match) => `
+              <article class="path-card">
+                <div class="card-top">
+                  <h3>${match.title}</h3>
+                  <span class="score">${match.score}%</span>
+                </div>
+                <p>${match.outcome}</p>
+                <dl>
+                  <dt>Eligibility</dt>
+                  <dd>${match.eligibility}</dd>
+                  <dt>Entrance / admission</dt>
+                  <dd>${match.exams.join(", ")}</dd>
+                  <dt>Skills to start</dt>
+                  <dd>${match.skills.join(", ")}</dd>
+                </dl>
+              </article>
+            `,
+          )
+          .join("");
+      }
+
+      function renderStaticLists() {
+        document.getElementById("scholarships").innerHTML = scholarships
+          .map((item) => `<div class="info-card"><p>${item}</p></div>`)
+          .join("");
+
+        document.getElementById("roadmapList").innerHTML = roadmap
+          .map(
+            ([week, title, detail]) => `
+              <article class="road-card">
+                <div class="week">${week}</div>
+                <div>
+                  <h3>${title}</h3>
+                  <p>${detail}</p>
+                </div>
+              </article>
+            `,
+          )
+          .join("");
+      }
+
+      function renderCopy() {
+        const text = copy[state.language];
+        document.getElementById("badge").textContent = text.badge;
+        document.getElementById("title").textContent = text.title;
+        document.getElementById("subtitle").textContent = text.subtitle;
+        document.getElementById("startText").textContent = text.start;
+        document.getElementById("profileTitle").textContent = text.profile;
+        document.getElementById("matchesTitle").textContent = text.matches;
+        document.getElementById("opportunitiesTitle").textContent = text.opportunities;
+        document.getElementById("roadmapTitle").textContent = text.roadmap;
+      }
+
+      function render() {
+        document.getElementById("language").value = state.language;
+        document.getElementById("stream").value = state.stream;
+        document.getElementById("marks").value = state.marks;
+        document.getElementById("marksValue").textContent = state.marks;
+        document.getElementById("budget").value = state.budget;
+        renderCopy();
+        renderInterests();
+        renderPathways();
+      }
+
+      document.getElementById("language").addEventListener("change", (event) => {
+        state.language = event.target.value;
+        render();
+      });
+      document.getElementById("stream").addEventListener("change", (event) => {
+        state.stream = event.target.value;
+        render();
+      });
+      document.getElementById("marks").addEventListener("input", (event) => {
+        state.marks = Number(event.target.value);
+        render();
+      });
+      document.getElementById("budget").addEventListener("change", (event) => {
+        state.budget = event.target.value;
+        render();
+      });
+
+      renderStaticLists();
+      render();
+    </script>
+  </body>
+</html>
