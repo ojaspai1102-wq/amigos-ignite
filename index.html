@@ -825,6 +825,7 @@
       }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
   </head>
   <body>
     <main>
@@ -944,8 +945,8 @@
             <div>
               <strong>Supabase backend</strong>
               <span id="backendMessage">
-                Paste your free Supabase project URL and anon key once. After that, profiles,
-                mentors, uploads, and ratings are saved in Supabase instead of only this browser.
+                Profiles, mentors, uploads, and ratings are designed to save in Supabase.
+                If backend config is missing, the page falls back to local demo storage.
               </span>
             </div>
             <div class="status-dot" id="backendStatus">Local demo mode</div>
@@ -953,30 +954,6 @@
 
           <div class="account-grid">
             <aside class="panel">
-              <div id="connectionPanel">
-                <div class="panel-title">
-                  <div class="icon-box" aria-hidden="true">DB</div>
-                  <div>
-                    <h2>Connect Supabase</h2>
-                    <p class="small">Use your project URL and anon public key.</p>
-                  </div>
-                </div>
-                <label class="field" for="supabaseUrl">Supabase project URL
-                  <input id="supabaseUrl" type="url" placeholder="https://your-project.supabase.co" />
-                </label>
-                <label class="field" for="supabaseAnonKey">Supabase anon key
-                  <input id="supabaseAnonKey" type="password" placeholder="Paste anon public key" />
-                </label>
-                <div class="mini-actions">
-                  <button class="mini-btn primary" type="button" id="connectSupabase">Connect backend</button>
-                  <button class="mini-btn" type="button" id="forgetSupabase">Forget keys</button>
-                </div>
-                <p class="db-note">
-                  First run the included <strong>supabase-schema.sql</strong> file in Supabase SQL
-                  Editor. Then come back here and connect.
-                </p>
-              </div>
-
               <div id="authPanel">
                 <div class="panel-title">
                   <div class="icon-box" aria-hidden="true">AU</div>
@@ -1283,7 +1260,6 @@
       let mentorDirectory = [...defaultMentors];
 
       const databaseKey = "careermitraLocalDatabase";
-      const supabaseConfigKey = "careermitraSupabaseConfig";
 
       const defaultDatabase = {
         student: {
@@ -1341,11 +1317,7 @@
       }
 
       function getSupabaseConfig() {
-        try {
-          return JSON.parse(localStorage.getItem(supabaseConfigKey)) || {};
-        } catch {
-          return {};
-        }
+        return window.CAREERMITRA_SUPABASE || {};
       }
 
       function createSupabaseClient() {
@@ -1442,27 +1414,11 @@
         render();
       }
 
-      async function connectSupabaseFromInputs() {
-        const url = document.getElementById("supabaseUrl").value.trim();
-        const anonKey = document.getElementById("supabaseAnonKey").value.trim();
-        if (!url || !anonKey) {
-          alert("Paste both the Supabase project URL and anon key.");
-          return;
-        }
-
-        localStorage.setItem(supabaseConfigKey, JSON.stringify({ url, anonKey }));
-        supabaseClient = createSupabaseClient();
-        setBackendStatus("Connected. Login or create student and mentor accounts to save data online.", true);
-        await loadRemoteData();
-      }
-
       async function bootSupabase() {
         const config = getSupabaseConfig();
-        document.getElementById("supabaseUrl").value = config.url || "";
-        document.getElementById("supabaseAnonKey").value = config.anonKey || "";
         supabaseClient = createSupabaseClient();
         if (!supabaseClient) {
-          setBackendStatus("Local demo database is active. Connect Supabase to save shared online data.");
+          setBackendStatus("Supabase config is missing. The page is using local demo storage.");
           return;
         }
         setBackendStatus("Supabase is connected. Login to save student data, uploads, and ratings online.", true);
@@ -1656,19 +1612,6 @@
       });
       document.getElementById("budget").addEventListener("change", (event) => {
         state.budget = event.target.value;
-        render();
-      });
-
-      document.getElementById("connectSupabase").addEventListener("click", connectSupabaseFromInputs);
-
-      document.getElementById("forgetSupabase").addEventListener("click", async () => {
-        if (supabaseClient) await supabaseClient.auth.signOut();
-        localStorage.removeItem(supabaseConfigKey);
-        supabaseClient = null;
-        currentUser = null;
-        currentProfile = null;
-        mentorDirectory = [...defaultMentors];
-        setBackendStatus("Supabase keys removed. Local demo database is active.");
         render();
       });
 

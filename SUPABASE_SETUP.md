@@ -39,15 +39,19 @@ This creates:
 The anon key is safe to use in a frontend website. Do not use the service-role
 key in GitHub Pages.
 
-## 4. Connect the website
+## 4. Add the backend config to the website code
 
-1. Open the CareerMitra website.
-2. Scroll to **Account and database demo**.
-3. Paste the Supabase Project URL.
-4. Paste the Supabase anon key.
-5. Click **Connect backend**.
+1. Open `supabase-config.js`.
+2. Paste your Supabase Project URL in `url`.
+3. Paste your Supabase anon public key in `anonKey`.
+4. Save the file.
+5. Push the updated file to GitHub.
 
-The status should change from **Local demo mode** to **Supabase connected**.
+After this, the website connects automatically when it opens. The Project URL
+and anon key are not shown in the website interface.
+
+Important: the anon key is safe for frontend use. Never put the service-role key
+in this file or anywhere in a GitHub Pages website.
 
 ## 5. Create demo accounts
 
