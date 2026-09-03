@@ -21,9 +21,13 @@ uploaded exam results, mentor profiles, and ratings in Supabase.
 5. Paste it into Supabase SQL Editor.
 6. Click **Run**.
 
+If you already ran an older version of this file, run the latest full file
+again. It updates `profiles`, `exam_results`, and `ratings` so the GitHub Pages
+demo can record data without being blocked by Supabase email signup limits.
+
 This creates:
 
-- `profiles`: student and mentor login profile data
+- `profiles`: student and mentor demo account/profile data
 - `mentor_profiles`: preloaded mentor qualifications and experience
 - `exam_results`: uploaded exam result file records
 - `ratings`: student-to-mentor and mentor-to-student ratings
@@ -67,9 +71,9 @@ Create one mentor account:
 - Email: another test email
 - Password: at least 6 characters
 
-If email confirmation is enabled in Supabase Auth, confirm the email before
-logging in. For faster demos, you can temporarily disable email confirmation in
-Supabase Auth settings.
+This project-demo version stores demo accounts directly in `public.profiles`.
+That avoids Supabase Auth email confirmation and email rate-limit problems while
+still recording data in your Supabase database.
 
 ## 6. Test the main flows
 

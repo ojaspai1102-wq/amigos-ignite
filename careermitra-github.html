@@ -1339,6 +1339,7 @@
       let mentorDirectory = [...defaultMentors];
 
       const databaseKey = "careermitraLocalDatabase";
+      const profileSessionKey = "careermitraProfileId";
 
       const defaultDatabase = {
         student: {
@@ -1419,6 +1420,54 @@
         return window.supabase.createClient(config.url, config.anonKey);
       }
 
+      function getProfilePayload(role = "student") {
+        const email = document.getElementById("authEmail").value.trim();
+        return {
+          role,
+          email,
+          password_hint: document.getElementById("authPassword").value,
+          full_name: document.getElementById("studentName").value.trim() || email || "CareerMitra Student",
+          village: document.getElementById("studentVillage").value.trim(),
+          class_stream: document.getElementById("studentClass").value.trim(),
+          career_goal: document.getElementById("studentGoal").value.trim(),
+          updated_at: new Date().toISOString(),
+        };
+      }
+
+      function applyProfile(profile) {
+        currentUser = profile;
+        currentProfile = profile;
+        localStorage.setItem(profileSessionKey, profile.id);
+        state.account = profile.role || "student";
+        if (state.account === "student") {
+          localDatabase.student = {
+            name: profile.full_name || "",
+            className: profile.class_stream || "",
+            village: profile.village || "",
+            goal: profile.career_goal || "",
+            uploads: localDatabase.student.uploads || [],
+          };
+          saveDatabase();
+        }
+      }
+
+      async function saveProfileToSupabase(role = "student") {
+        if (!supabaseClient) return { error: { message: "Supabase is not connected." } };
+
+        const profileId = currentUser?.id || localStorage.getItem(profileSessionKey);
+        const payload = getProfilePayload(role);
+        const request = profileId
+          ? supabaseClient.from("profiles").update(payload).eq("id", profileId).select("*").single()
+          : supabaseClient.from("profiles").insert(payload).select("*").single();
+        const result = await request;
+
+        if (!result.error && result.data) {
+          applyProfile(result.data);
+        }
+
+        return result;
+      }
+
       async function loadRemoteData() {
         if (!supabaseClient) return;
 
@@ -1441,12 +1490,12 @@
           }
         }
 
-        const sessionResult = await supabaseClient.auth.getUser();
-        currentUser = sessionResult.data?.user || null;
+        const savedProfileId = localStorage.getItem(profileSessionKey);
+        currentUser = null;
         currentProfile = null;
 
-        if (!currentUser) {
-          setAuthMessage("Supabase connected. Not signed in.");
+        if (!savedProfileId) {
+          setAuthMessage("Supabase connected. Create or login to a demo account.");
           render();
           return;
         }
@@ -1454,36 +1503,33 @@
         const profileResult = await supabaseClient
           .from("profiles")
           .select("*")
-          .eq("id", currentUser.id)
+          .eq("id", savedProfileId)
           .maybeSingle();
 
         if (!profileResult.error && profileResult.data) {
-          currentProfile = profileResult.data;
-          if (currentProfile.role === "student") {
-            localDatabase.student = {
-              name: currentProfile.full_name || "",
-              className: currentProfile.class_stream || "",
-              village: currentProfile.village || "",
-              goal: currentProfile.career_goal || "",
-              uploads: localDatabase.student.uploads || [],
-            };
-          }
-          state.account = currentProfile.role;
+          applyProfile(profileResult.data);
+        } else {
+          localStorage.removeItem(profileSessionKey);
+          setAuthMessage("Supabase connected. Create or login to a demo account.");
+          render();
+          return;
         }
 
         const uploadResult = await supabaseClient
           .from("exam_results")
-          .select("file_name, file_path, file_type, file_size, uploaded_at")
+          .select("id, file_name, file_path, file_type, file_size, file_data, uploaded_at")
           .eq("student_id", currentUser.id)
           .order("uploaded_at", { ascending: false });
 
         if (!uploadResult.error && uploadResult.data) {
           localDatabase.student.uploads = uploadResult.data.map((file) => ({
+            id: file.id,
             name: file.file_name,
             size: file.file_size || 0,
             type: file.file_type || "unknown",
             uploadedAt: file.uploaded_at,
             path: file.file_path,
+            content: file.file_data,
           }));
         }
 
@@ -1502,7 +1548,7 @@
           });
         }
 
-        setAuthMessage("Signed in as " + (currentProfile?.role || "user") + ": " + currentUser.email);
+        setAuthMessage("Using Supabase account: " + (currentProfile?.email || currentProfile?.full_name));
         render();
       }
 
@@ -1775,31 +1821,18 @@
           return;
         }
 
-        const email = document.getElementById("authEmail").value.trim();
-        const password = document.getElementById("authPassword").value;
         const role = document.getElementById("authRole").value;
-        const fullName = document.getElementById("studentName").value.trim() || email.split("@")[0];
+        localStorage.removeItem(profileSessionKey);
+        currentUser = null;
+        currentProfile = null;
 
-        const signUpResult = await supabaseClient.auth.signUp({ email, password });
-        if (signUpResult.error) {
-          setAuthMessage(signUpResult.error.message + ". If this says email rate limit exceeded, wait a few minutes or use Login with an existing account.");
+        const result = await saveProfileToSupabase(role);
+        if (result.error) {
+          setAuthMessage("Account was not recorded: " + result.error.message);
           return;
         }
 
-        currentUser = signUpResult.data.user;
-        if (currentUser) {
-          await supabaseClient.from("profiles").upsert({
-            id: currentUser.id,
-            role,
-            full_name: fullName,
-            village: document.getElementById("studentVillage").value.trim(),
-            class_stream: document.getElementById("studentClass").value.trim(),
-            career_goal: document.getElementById("studentGoal").value.trim(),
-            updated_at: new Date().toISOString(),
-          });
-        }
-
-        setAuthMessage("Account created. If Supabase email confirmation is enabled, confirm the email before login.");
+        setAuthMessage("Account created and recorded in Supabase profiles.");
         await loadRemoteData();
       });
 
@@ -1817,22 +1850,33 @@
 
         const email = document.getElementById("authEmail").value.trim();
         const password = document.getElementById("authPassword").value;
-        const loginResult = await supabaseClient.auth.signInWithPassword({ email, password });
-        if (loginResult.error) {
-          setAuthMessage(loginResult.error.message);
+        const role = document.getElementById("authRole").value;
+        const loginResult = await supabaseClient
+          .from("profiles")
+          .select("*")
+          .eq("email", email)
+          .eq("password_hint", password)
+          .eq("role", role)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (loginResult.error || !loginResult.data) {
+          setAuthMessage("No matching demo account found. Create the account first.");
           return;
         }
 
-        currentUser = loginResult.data.user;
+        applyProfile(loginResult.data);
+        setAuthMessage("Logged in from Supabase profiles as " + role + ".");
         await loadRemoteData();
       });
 
       document.getElementById("signOutUser").addEventListener("click", async () => {
-        if (supabaseClient) await supabaseClient.auth.signOut();
         currentUser = null;
         currentProfile = null;
         localSession = null;
-        setAuthMessage(supabaseClient ? "Signed out." : "Signed out of local demo mode.");
+        localStorage.removeItem(profileSessionKey);
+        setAuthMessage(supabaseClient ? "Signed out of demo account." : "Signed out of local demo mode.");
         render();
       });
 
@@ -1857,16 +1901,8 @@
         setAuthMessage("Student details saved on this page.");
         render();
 
-        if (supabaseClient && currentUser) {
-          const saveResult = await supabaseClient.from("profiles").upsert({
-            id: currentUser.id,
-            role: currentProfile?.role || "student",
-            full_name: localDatabase.student.name || currentUser.email,
-            village: localDatabase.student.village,
-            class_stream: localDatabase.student.className,
-            career_goal: localDatabase.student.goal,
-            updated_at: new Date().toISOString(),
-          });
+        if (supabaseClient) {
+          const saveResult = await saveProfileToSupabase(currentProfile?.role || "student");
 
           if (saveResult.error) {
             setAuthMessage("Saved locally, but Supabase sync failed: " + saveResult.error.message);
@@ -1888,18 +1924,23 @@
       document.getElementById("examUpload").addEventListener("change", async (event) => {
         const files = Array.from(event.target.files || []);
 
+        if (supabaseClient && !currentUser) {
+          const profileResult = await saveProfileToSupabase("student");
+          if (profileResult.error) {
+            setAuthMessage("Could not create student profile for upload: " + profileResult.error.message);
+            return;
+          }
+        }
+
         if (supabaseClient && currentUser) {
           for (const file of files) {
             const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
             const filePath = `${currentUser.id}/${Date.now()}-${cleanName}`;
-            const uploadResult = await supabaseClient.storage
-              .from("exam-results")
-              .upload(filePath, file, { upsert: false });
-
-            if (uploadResult.error) {
-              setAuthMessage("Upload failed: " + uploadResult.error.message);
-              return;
-            }
+            const fileData = await new Promise((resolve) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result);
+              reader.readAsDataURL(file);
+            });
 
             const rowResult = await supabaseClient.from("exam_results").insert({
               student_id: currentUser.id,
@@ -1907,6 +1948,7 @@
               file_path: filePath,
               file_type: file.type || "unknown",
               file_size: file.size,
+              file_data: fileData,
             });
 
             if (rowResult.error) {
@@ -1952,6 +1994,14 @@
           document.getElementById("studentRatesMentor").value + " stars";
         saveDatabase();
 
+        if (supabaseClient && !currentUser) {
+          const profileResult = await saveProfileToSupabase("student");
+          if (profileResult.error) {
+            setAuthMessage("Could not create student profile for rating: " + profileResult.error.message);
+            return;
+          }
+        }
+
         if (supabaseClient && currentUser) {
           const ratingResult = await supabaseClient.from("ratings").insert({
             from_user_id: currentUser.id,
@@ -1977,6 +2027,14 @@
         localDatabase.ratings.mentorToStudent[state.activeMentor] =
           document.getElementById("mentorRatesStudent").value + " stars";
         saveDatabase();
+
+        if (supabaseClient && !currentUser) {
+          const profileResult = await saveProfileToSupabase("mentor");
+          if (profileResult.error) {
+            setAuthMessage("Could not create mentor profile for rating: " + profileResult.error.message);
+            return;
+          }
+        }
 
         if (supabaseClient && currentUser) {
           const ratingResult = await supabaseClient.from("ratings").insert({
