@@ -2,194 +2,500 @@
 
 import Image from "next/image";
 import {
+  ArrowRight,
   Award,
+  Banknote,
   BookOpen,
+  Brain,
   BriefcaseBusiness,
+  Building2,
   CheckCircle2,
+  ChevronDown,
+  ChevronUp,
   ClipboardList,
   GraduationCap,
+  HeartPulse,
   Languages,
-  Map,
+  Leaf,
+  Lightbulb,
+  Menu,
+  Microscope,
+  Palette,
+  PhoneCall,
   Search,
+  Shield,
   Sparkles,
   Users,
+  Wrench,
+  X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-type Stream = "any" | "science" | "commerce" | "arts" | "vocational";
-type Interest =
-  | "technology"
-  | "health"
-  | "agriculture"
-  | "business"
-  | "government"
-  | "creative";
+type Language = "English" | "Hindi";
+type Category =
+  | "All"
+  | "Technology"
+  | "Healthcare"
+  | "Agriculture"
+  | "Education"
+  | "Government"
+  | "Business"
+  | "Arts"
+  | "Vocational"
+  | "Science"
+  | "Finance";
 
-const copy = {
+type Assessment = {
+  interests: string;
+  education: string;
+  skills: string;
+  dream: string;
+  location: string;
+};
+
+const languageCopy = {
   English: {
-    badge: "Rural student career opportunity navigator",
-    title: "Find a practical career path from your interests.",
+    navAssessment: "Career Assessment",
+    navPathways: "Pathways",
+    navScholarships: "Scholarships",
+    navExams: "Exams",
+    navResources: "Resources",
+    start: "Start Assessment",
+    languageButton: "हिंदी",
+    eyebrow: "Career guidance for students beyond metro cities",
+    title: "Plan a career path that fits your real life",
     subtitle:
-      "CareerMitra helps students compare careers, entrance exams, scholarships, courses, and next steps in one simple guidance flow.",
-    start: "Build my guidance plan",
-    profile: "Student profile",
-    matches: "Recommended pathways",
-    opportunities: "Opportunity finder",
-    roadmap: "Learning roadmap",
+      "CareerMitra helps students explore practical careers, scholarships, entrance exams, skills, and next steps in a simple guidance flow.",
+    quiz: "Take the Career Quiz",
+    explore: "Explore Pathways",
+    assessmentTitle: "Tell us about yourself",
+    assessmentSubtitle:
+      "Answer a few questions and get tailored suggestions you can discuss with a parent, teacher, or mentor.",
+    submit: "Get My Recommendations",
+    recommendations: "Your recommended starting points",
+    empty:
+      "Fill the form and tap the button to see your best-matching career options.",
   },
   Hindi: {
-    badge: "Gaon ke students ke liye career navigator",
-    title: "Apni ruchi se practical career raasta dhoondo.",
+    navAssessment: "Career Assessment",
+    navPathways: "Pathways",
+    navScholarships: "Scholarships",
+    navExams: "Exams",
+    navResources: "Resources",
+    start: "Assessment Shuru Karein",
+    languageButton: "English",
+    eyebrow: "Chhote shehron aur gaon ke students ke liye career guidance",
+    title: "Apni zindagi ke hisaab se career raasta banao",
     subtitle:
-      "CareerMitra careers, exams, scholarships, courses aur next steps ko ek simple flow mein dikhata hai.",
-    start: "Mera guidance plan banao",
-    profile: "Student profile",
-    matches: "Recommended pathways",
-    opportunities: "Opportunity finder",
-    roadmap: "Learning roadmap",
-  },
-  Marathi: {
-    badge: "Gramin vidyarthyan sathi career navigator",
-    title: "Tumchya interest nusar yogya career marg shodha.",
-    subtitle:
-      "CareerMitra careers, exams, scholarships, courses ani next steps ekatra dakhavto.",
-    start: "Maza guidance plan banao",
-    profile: "Student profile",
-    matches: "Recommended pathways",
-    opportunities: "Opportunity finder",
-    roadmap: "Learning roadmap",
+      "CareerMitra practical careers, scholarships, entrance exams, skills aur next steps ko ek simple guidance flow mein dikhata hai.",
+    quiz: "Career Quiz Dein",
+    explore: "Pathways Dekhein",
+    assessmentTitle: "Apne baare mein batayein",
+    assessmentSubtitle:
+      "Kuch sawalon ke jawab dekar teacher, parent ya mentor ke saath discuss karne layak suggestions paayein.",
+    submit: "Meri Recommendations Dikhao",
+    recommendations: "Aapke recommended starting points",
+    empty:
+      "Form bhar kar button dabayein; yahan aapke best-matching career options dikhai denge.",
   },
 };
 
-const interests: { id: Interest; label: string; icon: React.ReactNode }[] = [
-  { id: "technology", label: "Technology", icon: <BriefcaseBusiness /> },
-  { id: "health", label: "Health care", icon: <CheckCircle2 /> },
-  { id: "agriculture", label: "Agriculture", icon: <Map /> },
-  { id: "business", label: "Business", icon: <ClipboardList /> },
-  { id: "government", label: "Govt jobs", icon: <Award /> },
-  { id: "creative", label: "Creative work", icon: <Sparkles /> },
+const categories: Category[] = [
+  "All",
+  "Technology",
+  "Healthcare",
+  "Agriculture",
+  "Education",
+  "Government",
+  "Business",
+  "Arts",
+  "Vocational",
+  "Science",
+  "Finance",
 ];
+
+const iconMap: Record<Category, React.ReactNode> = {
+  All: <Search />,
+  Technology: <BriefcaseBusiness />,
+  Healthcare: <HeartPulse />,
+  Agriculture: <Leaf />,
+  Education: <GraduationCap />,
+  Government: <Shield />,
+  Business: <Building2 />,
+  Arts: <Palette />,
+  Vocational: <Wrench />,
+  Science: <Microscope />,
+  Finance: <Banknote />,
+};
 
 const pathways = [
   {
-    title: "Diploma in Computer Engineering",
-    fit: ["technology"],
-    streams: ["science", "vocational", "any"],
-    level: "Class 10 or 12",
-    eligibility: "Class 10 pass, basic maths comfort, state polytechnic admission.",
-    exams: ["State Polytechnic CET", "ITI/Polytechnic counselling"],
-    skills: ["Computer basics", "Logic building", "English typing"],
-    courses: ["Web development basics", "Python fundamentals", "Digital literacy"],
-    outcome: "Junior developer, technician, support engineer, later B.Tech lateral entry.",
+    category: "Agriculture" as Category,
+    title: "Agricultural Scientist / Agri-Entrepreneur",
+    description:
+      "Use modern farming knowledge to improve yields, solve local farm problems, or build an agriculture business.",
+    salary: "Rs 3-8 LPA, higher with entrepreneurship",
+    demand: "High",
+    eligibility: "Class 12 Science for degree routes; Class 10 or 12 for diploma and skill routes.",
+    skills: ["Soil and crop basics", "Data collection", "Local market awareness"],
+    roadmap: ["Choose agriculture or science subjects", "Prepare for ICAR or state admissions", "Intern with farms, FPOs, or krishi kendras"],
   },
   {
-    title: "Nursing and Community Health",
-    fit: ["health"],
-    streams: ["science"],
-    level: "Class 12 Science",
-    eligibility: "Class 12 PCB preferred, age and institute rules vary by state.",
-    exams: ["ANM/GNM admissions", "State nursing entrance"],
-    skills: ["Biology basics", "Communication", "First aid"],
-    courses: ["Human anatomy basics", "Public health", "Patient care"],
-    outcome: "Nursing assistant, GNM/ANM pathway, community health worker.",
+    category: "Government" as Category,
+    title: "Government Officer / Public Services",
+    description:
+      "Work in administration, revenue, railways, SSC, police, defence, or public service roles with steady growth.",
+    salary: "Rs 4-18 LPA with allowances",
+    demand: "Steady",
+    eligibility: "Class 12 for several uniformed services; graduation for UPSC, SSC CGL, banking, and state services.",
+    skills: ["General studies", "Reasoning", "Writing practice"],
+    roadmap: ["Build reading habits", "Track exam calendars", "Attempt mock tests every week"],
   },
   {
-    title: "Agri-Tech and Farm Management",
-    fit: ["agriculture", "technology", "business"],
-    streams: ["science", "vocational", "any"],
-    level: "Class 10 or 12",
-    eligibility: "Interest in farming, soil, machinery, supply chains, or agri business.",
-    exams: ["Agriculture diploma admissions", "ICAR after Class 12"],
-    skills: ["Crop planning", "Mobile tools", "Basic accounts"],
-    courses: ["Soil health", "Drone use in farming", "Agri entrepreneurship"],
-    outcome: "Agri assistant, farm manager, agri startup helper, extension services.",
+    category: "Education" as Category,
+    title: "Teacher / Learning Mentor",
+    description:
+      "Teach in schools, coaching centres, community programs, or digital learning platforms.",
+    salary: "Rs 3-9 LPA",
+    demand: "Steady",
+    eligibility: "D.El.Ed, B.Ed, TET, CTET, or subject-specific qualifications depending on the role.",
+    skills: ["Clear explanation", "Child development", "Subject mastery"],
+    roadmap: ["Choose a teaching level", "Complete required training", "Prepare for TET or CTET"],
   },
   {
-    title: "Banking, Accounts and Micro-Enterprise",
-    fit: ["business", "government"],
-    streams: ["commerce", "arts", "any"],
-    level: "Class 12",
-    eligibility: "Class 12 pass, basic maths, interest in accounts or local enterprise.",
-    exams: ["CUET", "Clerk exams after graduation", "Skill India courses"],
-    skills: ["Bookkeeping", "UPI and digital payments", "Customer handling"],
-    courses: ["Tally basics", "Excel for accounts", "Business communication"],
-    outcome: "Accounts assistant, banking preparation, local business operator.",
+    category: "Finance" as Category,
+    title: "Banking / Finance Professional",
+    description:
+      "Work in banks, microfinance, insurance, accounts, or local enterprise finance support.",
+    salary: "Rs 3-8 LPA",
+    demand: "Steady",
+    eligibility: "Class 12 for early accounts roles; graduation for bank officer and analyst routes.",
+    skills: ["Basic maths", "Bookkeeping", "Customer communication"],
+    roadmap: ["Learn spreadsheets and accounts", "Prepare for CUET or commerce courses", "Attempt banking aptitude tests"],
   },
   {
-    title: "Teacher Training and Social Work",
-    fit: ["government", "creative"],
-    streams: ["arts", "commerce", "science", "any"],
-    level: "Class 12 or Graduation",
-    eligibility: "Class 12 for D.El.Ed routes; graduation for B.Ed routes.",
-    exams: ["D.El.Ed admissions", "TET after teacher training"],
-    skills: ["Public speaking", "Child learning", "Local language strength"],
-    courses: ["Teaching methods", "Digital classroom tools", "Community projects"],
-    outcome: "Primary teacher route, NGO educator, community learning coordinator.",
+    category: "Vocational" as Category,
+    title: "Electrician / ITI Skilled Trades",
+    description:
+      "Build job-ready technical skills through ITI or apprenticeships, with a path to employment or self-employment.",
+    salary: "Rs 2-5 LPA, more with own work",
+    demand: "High",
+    eligibility: "Class 10 is enough for many ITI trades; some advanced routes need Class 12.",
+    skills: ["Safety practice", "Tool handling", "Problem diagnosis"],
+    roadmap: ["Select a local high-demand trade", "Complete ITI or apprenticeship", "Build a client and service record"],
   },
   {
-    title: "Design, Media and Local Content Creation",
-    fit: ["creative", "technology", "business"],
-    streams: ["arts", "commerce", "science", "vocational", "any"],
-    level: "Class 10 or 12",
-    eligibility: "Portfolio and practice matter more than stream for many beginner roles.",
-    exams: ["Design institute tests", "Skill certificate courses"],
-    skills: ["Visual sense", "Storytelling", "Phone video editing"],
-    courses: ["Canva/design basics", "Video editing", "Local language writing"],
-    outcome: "Content creator, design assistant, local business marketing support.",
+    category: "Arts" as Category,
+    title: "Designer / Digital Creator",
+    description:
+      "Create graphics, videos, local-language content, brand material, and digital campaigns for businesses.",
+    salary: "Rs 2.5-10 LPA",
+    demand: "High",
+    eligibility: "Portfolio and practice matter strongly; formal design courses can help.",
+    skills: ["Visual sense", "Storytelling", "Mobile editing"],
+    roadmap: ["Make 10 sample projects", "Learn design tools", "Offer work to local businesses"],
+  },
+  {
+    category: "Healthcare" as Category,
+    title: "Doctor / Medical Professional",
+    description:
+      "Diagnose and treat patients through MBBS, AYUSH, dental, pharmacy, or allied medical routes.",
+    salary: "Rs 8-25 LPA, varies widely",
+    demand: "High",
+    eligibility: "Class 12 PCB with NEET for MBBS, BDS, AYUSH, and several medical courses.",
+    skills: ["Biology", "Discipline", "Patient care"],
+    roadmap: ["Strengthen PCB basics", "Prepare for NEET", "Compare government and private college costs"],
+  },
+  {
+    category: "Business" as Category,
+    title: "Entrepreneur / Small Business Owner",
+    description:
+      "Start a shop, service, agri-business, online store, or local distribution venture with practical finance planning.",
+    salary: "Variable, unlimited potential",
+    demand: "High",
+    eligibility: "No fixed degree required; business skills, market understanding, and discipline are essential.",
+    skills: ["Selling", "Budgeting", "Customer trust"],
+    roadmap: ["Find a local problem", "Test a small paid offer", "Use government schemes responsibly"],
+  },
+  {
+    category: "Technology" as Category,
+    title: "Software Developer / IT Professional",
+    description:
+      "Build apps, websites, automation, and software systems for companies, startups, or freelance clients.",
+    salary: "Rs 3-15 LPA, grows with skill",
+    demand: "High",
+    eligibility: "Engineering, BCA, diploma, or strong portfolio routes can all work.",
+    skills: ["Coding basics", "English reading", "Problem solving"],
+    roadmap: ["Learn one programming language", "Build small projects", "Apply for internships or freelance tasks"],
+  },
+  {
+    category: "Healthcare" as Category,
+    title: "Staff Nurse / Healthcare Worker",
+    description:
+      "Care for patients in hospitals, clinics, and community health settings with steady rural and urban demand.",
+    salary: "Rs 2.5-6 LPA",
+    demand: "High",
+    eligibility: "ANM, GNM, or B.Sc Nursing routes after Class 12, depending on course and institute.",
+    skills: ["First aid", "Communication", "Care discipline"],
+    roadmap: ["Check nursing admissions", "Prepare documents", "Practice biology and communication"],
+  },
+  {
+    category: "Science" as Category,
+    title: "Lab Technician / Research Assistant",
+    description:
+      "Support labs in healthcare, agriculture, food testing, environment, or science education.",
+    salary: "Rs 2.5-7 LPA",
+    demand: "Growing",
+    eligibility: "Class 12 Science, diploma, B.Sc, or lab technician certification.",
+    skills: ["Observation", "Measurements", "Record keeping"],
+    roadmap: ["Choose a science subject", "Find diploma or B.Sc options", "Get practical lab exposure"],
+  },
+  {
+    category: "Technology" as Category,
+    title: "Data Analyst",
+    description:
+      "Use spreadsheets, charts, and basic programming to help organisations make better decisions.",
+    salary: "Rs 4-12 LPA",
+    demand: "High",
+    eligibility: "Any stream can enter with maths comfort, spreadsheet skill, and a project portfolio.",
+    skills: ["Excel", "Charts", "Basic statistics"],
+    roadmap: ["Learn spreadsheets", "Build dashboards from public data", "Study SQL or Python basics"],
   },
 ];
 
 const scholarships = [
-  "National Scholarship Portal: category, income, minority, disability and merit schemes.",
-  "State post-matric scholarships: fee support for eligible Class 11, 12, diploma and degree students.",
-  "AICTE Pragati/Saksham: technical education support for eligible students.",
-  "Local CSR and NGO scholarships: add district-level listings through a teacher/admin panel.",
+  {
+    title: "Central Sector Scheme of Scholarships",
+    provider: "Ministry of Education",
+    description:
+      "Merit-cum-means support for academically strong students from low-income families.",
+    amount: "Rs 12,000 per year for UG, Rs 20,000 for PG",
+    level: "Undergraduate",
+    deadline: "August to September",
+    eligibility:
+      "80%+ in Class 12, family income below Rs 8 lakh, pursuing graduation.",
+    url: "https://scholarships.gov.in/",
+  },
+  {
+    title: "PG Indira Gandhi Scholarship for Single Girl Child",
+    provider: "UGC",
+    description:
+      "Support for single girl child students pursuing postgraduate education.",
+    amount: "Rs 36,200 per year for 2 years",
+    level: "Postgraduate",
+    deadline: "September to November",
+    eligibility: "Single girl child pursuing post-graduation, up to 30 years age.",
+    url: "https://ugc.gov.in/",
+  },
+  {
+    title: "National Scholarship Portal Post-Matric",
+    provider: "Government of India",
+    description:
+      "Central and state scholarship access for eligible post-matric students.",
+    amount: "Rs 1,000 to Rs 20,000 per year, varies by scheme",
+    level: "Class 11 onward",
+    deadline: "October to November, varies yearly",
+    eligibility:
+      "SC, ST, OBC, minority, and other eligible students based on scheme rules.",
+    url: "https://scholarships.gov.in/",
+  },
+  {
+    title: "INSPIRE Scholarship for Higher Education",
+    provider: "Department of Science and Technology",
+    description:
+      "Encourages talented students to pursue science and research degrees.",
+    amount: "Rs 80,000 per year",
+    level: "Undergraduate",
+    deadline: "July to September",
+    eligibility:
+      "Top-performing Class 12 science students pursuing natural sciences.",
+    url: "https://online-inspire.gov.in/",
+  },
+  {
+    title: "AICTE Pragati Scholarship for Girls",
+    provider: "AICTE",
+    description:
+      "Financial support for girl students entering technical diploma or degree courses.",
+    amount: "Rs 50,000 per year",
+    level: "Diploma / Degree",
+    deadline: "September to October",
+    eligibility:
+      "Girl students admitted to technical education, family income below Rs 8 lakh.",
+    url: "https://aictescholarship.gov.in/",
+  },
+  {
+    title: "Post-Matric Scholarship for Minorities",
+    provider: "Ministry of Minority Affairs",
+    description:
+      "Financial assistance for minority community students after Class 10.",
+    amount: "Up to Rs 20,000 per year",
+    level: "All post-matric levels",
+    deadline: "August to October",
+    eligibility:
+      "Eligible minority students at post-matric level with income limits as notified.",
+    url: "https://scholarships.gov.in/",
+  },
 ];
 
-const roadmap = [
+const exams = [
   {
-    week: "Week 1",
-    title: "Know yourself",
-    detail: "Enter interests, stream, marks range, family budget, language and location.",
+    title: "JEE Main",
+    full: "Joint Entrance Examination - Main",
+    field: "Engineering",
+    description:
+      "Entrance exam for NITs, IIITs, engineering colleges, and JEE Advanced qualification.",
+    eligibility: "Class 12 with Physics, Chemistry, and Mathematics.",
+    period: "January and April sessions",
+    pattern: "Computer-based papers with objective questions.",
+    topics: ["Physics", "Chemistry", "Mathematics"],
+    url: "https://jeemain.nta.ac.in/",
   },
   {
-    week: "Week 2",
-    title: "Shortlist options",
-    detail: "Compare 3 career paths by eligibility, cost, duration, exams and local access.",
+    title: "NEET-UG",
+    full: "National Eligibility cum Entrance Test",
+    field: "Medical",
+    description:
+      "Single major entrance exam for MBBS, BDS, AYUSH, and many allied health admissions.",
+    eligibility: "Class 12 with Physics, Chemistry, Biology, and English.",
+    period: "Usually February to March applications, May exam",
+    pattern: "Offline test with Physics, Chemistry, Botany, and Zoology.",
+    topics: ["Physics", "Chemistry", "Biology"],
+    url: "https://neet.nta.nic.in/",
   },
   {
-    week: "Week 3",
-    title: "Prepare documents",
-    detail: "Track caste/income certificates, mark sheets, Aadhaar, bank account and photos.",
+    title: "UPSC Civil Services",
+    full: "Union Public Service Commission Civil Services Examination",
+    field: "Civil Services",
+    description:
+      "Recruitment route for IAS, IPS, IFS, and other central Group A services.",
+    eligibility: "Graduation in any discipline, age rules apply.",
+    period: "Applications usually in February",
+    pattern: "Prelims, Mains, and Interview.",
+    topics: ["General Studies", "CSAT", "Essay", "Current Affairs"],
+    url: "https://upsc.gov.in/",
   },
   {
-    week: "Week 4",
-    title: "Take action",
-    detail: "Apply for courses, entrance exams, scholarships and a starter learning module.",
+    title: "SSC CGL",
+    full: "Staff Selection Commission Combined Graduate Level",
+    field: "Government",
+    description:
+      "Recruitment for Group B and C posts in central ministries and departments.",
+    eligibility: "Graduation from a recognised university.",
+    period: "Usually April to May applications",
+    pattern: "Tiered objective and skill-based examination.",
+    topics: ["Quantitative Aptitude", "English", "Reasoning", "General Awareness"],
+    url: "https://ssc.nic.in/",
+  },
+  {
+    title: "IBPS PO",
+    full: "Institute of Banking Personnel Selection Probationary Officer",
+    field: "Banking",
+    description:
+      "Recruitment exam for probationary officer posts in public sector banks.",
+    eligibility: "Graduation in any discipline, age rules apply.",
+    period: "Usually August to September applications",
+    pattern: "Prelims, Mains, and Interview.",
+    topics: ["Reasoning", "English", "Quantitative Aptitude", "General Awareness"],
+    url: "https://ibps.in/",
+  },
+  {
+    title: "NDA",
+    full: "National Defence Academy Examination",
+    field: "Defence",
+    description:
+      "Entry route for Army, Navy, and Air Force officer training after school.",
+    eligibility: "Class 12; Physics and Maths needed for Air Force and Navy.",
+    period: "Usually January and June applications",
+    pattern: "Written exam followed by SSB interview.",
+    topics: ["Mathematics", "English", "GK", "Science"],
+    url: "https://upsc.gov.in/",
+  },
+  {
+    title: "CLAT",
+    full: "Common Law Admission Test",
+    field: "Law",
+    description:
+      "Entrance exam for undergraduate and postgraduate law programs at National Law Universities.",
+    eligibility: "Class 12 for UG law; LLB for PG law.",
+    period: "Usually July to October applications",
+    pattern: "Reading-heavy aptitude test.",
+    topics: ["English", "Current Affairs", "Legal Reasoning", "Logic"],
+    url: "https://consortiumofnlus.ac.in/",
+  },
+  {
+    title: "CUET-UG",
+    full: "Common University Entrance Test - Undergraduate",
+    field: "General",
+    description:
+      "Single-window entrance test for undergraduate programs in many universities.",
+    eligibility: "Class 12 from a recognised board.",
+    period: "Usually February to April applications",
+    pattern: "Computer-based papers selected by subject.",
+    topics: ["Language", "Domain Subjects", "General Test"],
+    url: "https://cuet.samarth.ac.in/",
   },
 ];
 
-function getMatches(interest: Interest, stream: Stream, marks: number, budget: string) {
+const resources = [
+  {
+    title: "Free Learning Resources",
+    detail:
+      "Course playlists, open study material, language-friendly channels, and beginner projects for every stream.",
+    icon: <BookOpen />,
+  },
+  {
+    title: "Mentorship & Guidance",
+    detail:
+      "A simple way to prepare questions before speaking with teachers, alumni, seniors, or local counsellors.",
+    icon: <Users />,
+  },
+  {
+    title: "Exam Preparation Tips",
+    detail:
+      "Timetable ideas, mock-test habits, revision cycles, and document reminders for exam season.",
+    icon: <ClipboardList />,
+  },
+  {
+    title: "Helpline & Support",
+    detail:
+      "Keep nearby counselling centres, scholarship help desks, and trusted school contacts in one place.",
+    icon: <PhoneCall />,
+  },
+];
+
+function getRecommendations(form: Assessment) {
+  const combined = `${form.interests} ${form.skills} ${form.dream}`.toLowerCase();
+  const education = form.education.toLowerCase();
+
   return pathways
     .map((path) => {
-      let score = 38;
-      if (path.fit.includes(interest)) score += 34;
-      if (path.streams.includes(stream) || path.streams.includes("any")) score += 18;
-      if (marks >= 75) score += 6;
-      if (budget === "low" && path.level.includes("10")) score += 4;
-      return { ...path, score: Math.min(score, 98) };
+      let score = 42;
+      const haystack = `${path.category} ${path.title} ${path.description} ${path.skills.join(" ")}`.toLowerCase();
+      for (const word of combined.split(/[^a-z0-9]+/).filter((item) => item.length > 2)) {
+        if (haystack.includes(word)) score += 7;
+      }
+      if (education.includes("8") && path.eligibility.includes("Class 10")) score += 12;
+      if (education.includes("11") && path.eligibility.includes("Class 12")) score += 12;
+      if (education.includes("graduation") && path.eligibility.toLowerCase().includes("graduation")) score += 14;
+      if (combined.includes("doctor") || combined.includes("nurse") || combined.includes("health")) {
+        if (path.category === "Healthcare") score += 28;
+      }
+      if (combined.includes("computer") || combined.includes("coding") || combined.includes("software")) {
+        if (path.category === "Technology") score += 28;
+      }
+      if (combined.includes("farm") || combined.includes("agri")) {
+        if (path.category === "Agriculture") score += 28;
+      }
+      if (combined.includes("government") || combined.includes("police") || combined.includes("ias")) {
+        if (path.category === "Government") score += 24;
+      }
+      return { ...path, score: Math.min(score, 96) };
     })
     .sort((a, b) => b.score - a.score)
     .slice(0, 3);
 }
 
-type ToolInput = {
-  interest?: Interest;
-  stream?: Stream;
-  marks?: number;
-  budget?: string;
-  language?: keyof typeof copy;
-};
+type ToolInput = Partial<Assessment> & { language?: Language; category?: Category };
 
 declare global {
   interface Document {
@@ -210,71 +516,59 @@ declare global {
 }
 
 export default function Home() {
-  const [language, setLanguage] = useState<keyof typeof copy>("English");
-  const [stream, setStream] = useState<Stream>("science");
-  const [interest, setInterest] = useState<Interest>("technology");
-  const [marks, setMarks] = useState(72);
-  const [budget, setBudget] = useState("low");
+  const [language, setLanguage] = useState<Language>("English");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [category, setCategory] = useState<Category>("All");
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
+  const [form, setForm] = useState<Assessment>({
+    interests: "",
+    education: "Class 8-10 (Middle/High School)",
+    skills: "",
+    dream: "",
+    location: "",
+  });
 
-  const text = copy[language];
-  const matches = useMemo(
-    () => getMatches(interest, stream, marks, budget),
-    [budget, interest, marks, stream],
+  const text = languageCopy[language];
+  const filteredPathways = useMemo(
+    () => pathways.filter((path) => category === "All" || path.category === category),
+    [category],
   );
+  const recommendations = useMemo(() => getRecommendations(form), [form]);
 
   useEffect(() => {
     const context = document.modelContext;
     if (!context?.registerTool) return;
 
     const lifecycle = new AbortController();
-    const validInterests = interests.map((item) => item.id);
-    const validStreams = ["any", "science", "commerce", "arts", "vocational"];
-    const validBudgets = ["low", "medium", "open"];
-    const validLanguages = Object.keys(copy);
-
     const execute = (input: unknown) => {
       const payload = (input ?? {}) as ToolInput;
-      const nextInterest = validInterests.includes(payload.interest as Interest)
-        ? (payload.interest as Interest)
-        : interest;
-      const nextStream = validStreams.includes(payload.stream as Stream)
-        ? (payload.stream as Stream)
-        : stream;
-      const nextBudget = validBudgets.includes(payload.budget ?? "")
-        ? (payload.budget as string)
-        : budget;
-      const nextLanguage = validLanguages.includes(payload.language ?? "")
-        ? (payload.language as keyof typeof copy)
-        : language;
-      const nextMarks =
-        typeof payload.marks === "number" && payload.marks >= 35 && payload.marks <= 98
-          ? Math.round(payload.marks)
-          : marks;
+      const nextForm = {
+        interests: payload.interests ?? form.interests,
+        education: payload.education ?? form.education,
+        skills: payload.skills ?? form.skills,
+        dream: payload.dream ?? form.dream,
+        location: payload.location ?? form.location,
+      };
+      const nextLanguage = payload.language === "Hindi" || payload.language === "English" ? payload.language : language;
+      const nextCategory = categories.includes(payload.category as Category) ? (payload.category as Category) : category;
 
-      setInterest(nextInterest);
-      setStream(nextStream);
-      setBudget(nextBudget);
+      setForm(nextForm);
       setLanguage(nextLanguage);
-      setMarks(nextMarks);
+      setCategory(nextCategory);
+      setSubmitted(true);
 
       return {
-        profile: {
-          interest: nextInterest,
-          stream: nextStream,
-          budget: nextBudget,
-          language: nextLanguage,
-          marks: nextMarks,
-        },
-        recommendations: getMatches(nextInterest, nextStream, nextMarks, nextBudget).map(
-          ({ title, score, eligibility, exams, skills, outcome }) => ({
-            title,
-            score,
-            eligibility,
-            exams,
-            skills,
-            outcome,
-          }),
-        ),
+        profile: nextForm,
+        language: nextLanguage,
+        category: nextCategory,
+        recommendations: getRecommendations(nextForm).map((item) => ({
+          title: item.title,
+          category: item.category,
+          score: item.score,
+          eligibility: item.eligibility,
+          roadmap: item.roadmap,
+        })),
       };
     };
 
@@ -282,18 +576,20 @@ export default function Home() {
       void Promise.resolve(
         context.registerTool(
           {
-            name: "configure_student_profile",
-            title: "Configure student profile",
+            name: "create_career_guidance_plan",
+            title: "Create career guidance plan",
             description:
-              "Update the visible CareerMitra demo profile and return matching career pathways.",
+              "Fill the visible CareerMitra assessment profile and return matching career, scholarship, and exam guidance.",
             inputSchema: {
               type: "object",
               properties: {
-                interest: { type: "string", enum: validInterests },
-                stream: { type: "string", enum: validStreams },
-                marks: { type: "number", minimum: 35, maximum: 98 },
-                budget: { type: "string", enum: validBudgets },
-                language: { type: "string", enum: validLanguages },
+                interests: { type: "string" },
+                education: { type: "string" },
+                skills: { type: "string" },
+                dream: { type: "string" },
+                location: { type: "string" },
+                language: { type: "string", enum: ["English", "Hindi"] },
+                category: { type: "string", enum: categories },
               },
               additionalProperties: false,
             },
@@ -308,259 +604,446 @@ export default function Home() {
     }
 
     return () => lifecycle.abort();
-  }, [budget, interest, language, marks, stream]);
+  }, [category, form, language]);
+
+  function updateField(field: keyof Assessment, value: string) {
+    setForm((current) => ({ ...current, [field]: value }));
+  }
 
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <section className="relative isolate overflow-hidden border-b border-border bg-[linear-gradient(135deg,#f7fbf5_0%,#eaf7f4_42%,#fff8e6_100%)]">
-        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-background to-transparent" />
-        <div className="mx-auto grid min-h-[720px] w-full max-w-7xl items-center gap-8 px-4 py-5 sm:px-6 lg:grid-cols-[0.98fr_1.02fr] lg:px-8">
-          <div className="relative z-10 max-w-2xl py-8">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white/80 px-3 py-2 text-xs font-semibold uppercase text-emerald-900 shadow-sm">
+      <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/92 backdrop-blur">
+        <nav className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8" aria-label="Main navigation">
+          <a href="#home" className="flex items-center gap-2 font-bold text-slate-950" onClick={() => setMenuOpen(false)}>
+            <span className="grid h-9 w-9 place-items-center rounded-lg bg-sky-600 text-white shadow-sm">C</span>
+            <span>Career<span className="text-sky-600">Mitra</span></span>
+          </a>
+          <div className="hidden items-center gap-8 md:flex">
+            <a className="text-sm font-semibold text-slate-600 hover:text-sky-700" href="#assessment">{text.navAssessment}</a>
+            <a className="text-sm font-semibold text-slate-600 hover:text-sky-700" href="#pathways">{text.navPathways}</a>
+            <a className="text-sm font-semibold text-slate-600 hover:text-sky-700" href="#scholarships">{text.navScholarships}</a>
+            <a className="text-sm font-semibold text-slate-600 hover:text-sky-700" href="#exams">{text.navExams}</a>
+            <a className="text-sm font-semibold text-slate-600 hover:text-sky-700" href="#resources">{text.navResources}</a>
+          </div>
+          <div className="hidden items-center gap-2 md:flex">
+            <button
+              type="button"
+              onClick={() => setLanguage(language === "English" ? "Hindi" : "English")}
+              className="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-sky-100"
+            >
               <Languages className="h-4 w-4" />
-              {text.badge}
+              {text.languageButton}
+            </button>
+            <a className="inline-flex h-10 items-center rounded-lg bg-sky-600 px-4 text-sm font-bold text-white shadow-sm shadow-sky-900/10 hover:bg-sky-700" href="#assessment">
+              {text.start}
+            </a>
+          </div>
+          <button
+            type="button"
+            className="grid h-10 w-10 place-items-center rounded-lg border border-slate-200 md:hidden"
+            onClick={() => setMenuOpen((value) => !value)}
+            aria-label="Open menu"
+          >
+            {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </nav>
+        {menuOpen ? (
+          <div className="border-t border-slate-200 bg-white px-4 py-4 md:hidden">
+            <div className="grid gap-3">
+              {[
+                [text.navAssessment, "#assessment"],
+                [text.navPathways, "#pathways"],
+                [text.navScholarships, "#scholarships"],
+                [text.navExams, "#exams"],
+                [text.navResources, "#resources"],
+              ].map(([label, href]) => (
+                <a key={href} className="rounded-lg px-2 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50" href={href} onClick={() => setMenuOpen(false)}>
+                  {label}
+                </a>
+              ))}
+              <button
+                type="button"
+                onClick={() => setLanguage(language === "English" ? "Hindi" : "English")}
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 text-sm font-semibold"
+              >
+                <Languages className="h-4 w-4" />
+                {text.languageButton}
+              </button>
             </div>
-            <h1 className="text-balance text-4xl font-bold leading-[1.03] tracking-normal text-slate-950 sm:text-5xl lg:text-6xl">
+          </div>
+        ) : null}
+      </header>
+
+      <section id="home" className="overflow-hidden bg-white">
+        <div className="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-7xl items-center gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:px-8">
+          <div>
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-sky-50 px-3 py-2 text-xs font-bold uppercase text-sky-800">
+              <Sparkles className="h-3.5 w-3.5" />
+              {text.eyebrow}
+            </div>
+            <h1 className="max-w-3xl text-4xl font-black leading-[1.03] tracking-normal text-slate-950 sm:text-5xl lg:text-6xl">
               {text.title}
             </h1>
-            <p className="mt-5 max-w-xl text-pretty text-base leading-7 text-slate-700 sm:text-lg">
-              {text.subtitle}
-            </p>
-            <div className="mt-7 flex flex-wrap gap-3">
-              <a
-                href="#navigator"
-                className="inline-flex min-h-11 items-center gap-2 rounded-md bg-emerald-700 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-900/15 transition hover:bg-emerald-800 focus:outline-none focus:ring-4 focus:ring-emerald-200"
-              >
-                <Search className="h-4 w-4" />
-                {text.start}
+            <p className="mt-5 max-w-xl text-lg leading-8 text-slate-600">{text.subtitle}</p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <a className="inline-flex min-h-12 items-center gap-2 rounded-lg bg-sky-600 px-5 py-3 font-bold text-white shadow-lg shadow-sky-900/15 hover:bg-sky-700" href="#assessment">
+                {text.quiz}
+                <ArrowRight className="h-4 w-4" />
               </a>
-              <a
-                href="#roadmap"
-                className="inline-flex min-h-11 items-center gap-2 rounded-md border border-slate-300 bg-white/85 px-5 py-3 text-sm font-semibold text-slate-900 transition hover:border-emerald-500 hover:text-emerald-800 focus:outline-none focus:ring-4 focus:ring-emerald-200"
-              >
-                <Map className="h-4 w-4" />
-                View roadmap
+              <a className="inline-flex min-h-12 items-center gap-2 rounded-lg border border-slate-200 bg-white px-5 py-3 font-bold text-slate-700 hover:border-sky-300 hover:text-sky-700" href="#pathways">
+                {text.explore}
               </a>
-            </div>
-            <div className="mt-8 grid max-w-xl grid-cols-3 gap-3">
-              {[
-                ["6", "career clusters"],
-                ["4", "languages planned"],
-                ["30 min", "counselling flow"],
-              ].map(([value, label]) => (
-                <div key={label} className="border-l-2 border-emerald-500 bg-white/50 px-3 py-2">
-                  <div className="text-2xl font-bold text-slate-950">{value}</div>
-                  <div className="text-xs font-medium uppercase text-slate-600">{label}</div>
-                </div>
-              ))}
             </div>
           </div>
-
-          <div className="relative z-10 overflow-hidden rounded-lg border border-white/70 bg-white shadow-2xl shadow-emerald-900/15">
-            <Image
-              src="/careermitra-hero.png"
-              alt="Rural students exploring career pathways with CareerMitra"
-              width={1680}
-              height={945}
-              priority
-              className="aspect-[16/10] w-full object-cover"
-            />
+          <div className="relative">
+            <div className="overflow-hidden rounded-lg border border-slate-100 bg-slate-50 shadow-2xl shadow-sky-950/12">
+              <Image
+                src="/careermitra-hero.png"
+                alt="Students in a rural setting exploring future career possibilities"
+                width={1680}
+                height={945}
+                priority
+                className="aspect-[4/3] w-full object-cover sm:aspect-[16/10]"
+              />
+            </div>
+            <div className="absolute -bottom-5 left-5 rounded-lg border border-slate-200 bg-white p-4 shadow-xl">
+              <p className="text-xs font-bold uppercase text-slate-500">Guidance Score</p>
+              <p className="text-3xl font-black text-sky-700">100%</p>
+              <p className="text-sm text-slate-600">Personalised</p>
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-4 lg:col-span-2">
+            {[
+              ["12+", "Career Pathways", <Brain key="brain" />],
+              ["8+", "Scholarships", <Award key="award" />],
+              ["10+", "Exams", <GraduationCap key="grad" />],
+              ["2", "Languages", <Languages key="lang" />],
+            ].map(([value, label, icon]) => (
+              <div key={label as string} className="flex items-center gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                <span className="grid h-11 w-11 place-items-center rounded-lg bg-sky-50 text-sky-700 [&_svg]:h-5 [&_svg]:w-5">{icon}</span>
+                <span>
+                  <span className="block text-2xl font-black text-slate-950">{value}</span>
+                  <span className="block text-sm text-slate-500">{label}</span>
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      <section id="navigator" className="border-b border-border bg-white">
-        <div className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-10 sm:px-6 lg:grid-cols-[360px_minmax(0,1fr)] lg:px-8">
-          <aside className="self-start rounded-lg border border-border bg-card p-5 shadow-sm">
-            <div className="mb-5 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-emerald-100 text-emerald-800">
-                <Users className="h-5 w-5" />
-              </div>
-              <div>
-                <h2 className="text-lg font-bold">{text.profile}</h2>
-                <p className="text-sm text-muted-foreground">Tune the demo inputs.</p>
-              </div>
+      <section id="assessment" className="border-y border-slate-200 bg-sky-50/50">
+        <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-16 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
+          <div>
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs font-bold uppercase text-sky-800">
+              <Lightbulb className="h-4 w-4" />
+              Guided Assessment
             </div>
+            <h2 className="text-3xl font-black tracking-normal text-slate-950 sm:text-4xl">{text.assessmentTitle}</h2>
+            <p className="mt-3 max-w-xl text-base leading-7 text-slate-600">{text.assessmentSubtitle}</p>
 
-            <label className="block text-sm font-semibold text-slate-800" htmlFor="language">
-              Guidance language
-            </label>
-            <select
-              id="language"
-              value={language}
-              onChange={(event) => setLanguage(event.target.value as keyof typeof copy)}
-              className="mt-2 h-11 w-full rounded-md border border-input bg-white px-3 text-sm outline-none focus:ring-4 focus:ring-emerald-100"
+            <form
+              className="mt-7 rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
+              onSubmit={(event) => {
+                event.preventDefault();
+                setSubmitted(true);
+              }}
             >
-              {Object.keys(copy).map((item) => (
-                <option key={item}>{item}</option>
-              ))}
-            </select>
+              <label className="block text-sm font-bold text-slate-800" htmlFor="interests">Your Interests *</label>
+              <textarea
+                id="interests"
+                required
+                value={form.interests}
+                onChange={(event) => updateField("interests", event.target.value)}
+                placeholder="e.g. computers, farming, helping people, drawing, maths..."
+                className="mt-2 min-h-24 w-full resize-y rounded-lg border border-slate-200 px-3 py-3 text-sm outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+              />
 
-            <label className="mt-5 block text-sm font-semibold text-slate-800" htmlFor="stream">
-              Current background
-            </label>
-            <select
-              id="stream"
-              value={stream}
-              onChange={(event) => setStream(event.target.value as Stream)}
-              className="mt-2 h-11 w-full rounded-md border border-input bg-white px-3 text-sm outline-none focus:ring-4 focus:ring-emerald-100"
-            >
-              <option value="science">Class 11-12 Science</option>
-              <option value="commerce">Commerce</option>
-              <option value="arts">Arts / Humanities</option>
-              <option value="vocational">ITI / Vocational</option>
-              <option value="any">Not decided yet</option>
-            </select>
+              <label className="mt-4 block text-sm font-bold text-slate-800" htmlFor="education">Current Education Level *</label>
+              <select
+                id="education"
+                value={form.education}
+                onChange={(event) => updateField("education", event.target.value)}
+                className="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+              >
+                <option>Class 8-10 (Middle/High School)</option>
+                <option>Class 11-12 (Higher Secondary)</option>
+                <option>Graduation (B.A/B.Sc/B.Com)</option>
+                <option>Diploma / ITI</option>
+                <option>Post Graduation</option>
+                <option>Other</option>
+              </select>
 
-            <div className="mt-5">
-              <p className="text-sm font-semibold text-slate-800">Main interest</p>
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                {interests.map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => setInterest(item.id)}
-                    className={`flex min-h-16 items-center gap-2 rounded-md border px-3 text-left text-sm font-semibold transition focus:outline-none focus:ring-4 focus:ring-emerald-100 ${
-                      interest === item.id
-                        ? "border-emerald-600 bg-emerald-50 text-emerald-950"
-                        : "border-slate-200 bg-white text-slate-700 hover:border-emerald-300"
-                    }`}
-                  >
-                    <span className="[&_svg]:h-4 [&_svg]:w-4">{item.icon}</span>
-                    {item.label}
-                  </button>
+              <label className="mt-4 block text-sm font-bold text-slate-800" htmlFor="skills">Your Skills *</label>
+              <textarea
+                id="skills"
+                required
+                value={form.skills}
+                onChange={(event) => updateField("skills", event.target.value)}
+                placeholder="e.g. good at maths, public speaking, coding, painting..."
+                className="mt-2 min-h-20 w-full resize-y rounded-lg border border-slate-200 px-3 py-3 text-sm outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+              />
+
+              <label className="mt-4 block text-sm font-bold text-slate-800" htmlFor="dream">Your Dream / Aspiration *</label>
+              <textarea
+                id="dream"
+                required
+                value={form.dream}
+                onChange={(event) => updateField("dream", event.target.value)}
+                placeholder="e.g. I want to become an engineer and support my family"
+                className="mt-2 min-h-20 w-full resize-y rounded-lg border border-slate-200 px-3 py-3 text-sm outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+              />
+
+              <label className="mt-4 block text-sm font-bold text-slate-800" htmlFor="location">Location (optional)</label>
+              <input
+                id="location"
+                value={form.location}
+                onChange={(event) => updateField("location", event.target.value)}
+                placeholder="e.g. Ratlam, Madhya Pradesh"
+                className="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+              />
+
+              <button type="submit" className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-sky-600 px-5 py-3 font-bold text-white hover:bg-sky-700 focus:outline-none focus:ring-4 focus:ring-sky-100">
+                <Sparkles className="h-4 w-4" />
+                {text.submit}
+              </button>
+            </form>
+          </div>
+
+          <div className="self-start rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-bold uppercase text-sky-700">Assessment Output</p>
+                <h3 className="mt-1 text-2xl font-black text-slate-950">{text.recommendations}</h3>
+              </div>
+              <CheckCircle2 className="h-8 w-8 text-emerald-600" />
+            </div>
+            {!submitted ? (
+              <div className="mt-5 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6 text-sm leading-7 text-slate-600">
+                {text.empty}
+              </div>
+            ) : (
+              <div className="mt-5 grid gap-4">
+                {recommendations.map((item) => (
+                  <article key={item.title} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-xs font-bold uppercase text-sky-700">{item.category}</p>
+                        <h4 className="mt-1 text-lg font-black text-slate-950">{item.title}</h4>
+                      </div>
+                      <span className="rounded-lg bg-emerald-600 px-2.5 py-1 text-sm font-black text-white">{item.score}%</span>
+                    </div>
+                    <p className="mt-3 text-sm leading-6 text-slate-600">{item.description}</p>
+                    <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                      {item.roadmap.map((step, index) => (
+                        <div key={step} className="rounded-lg bg-white p-3 text-sm text-slate-700">
+                          <span className="mb-1 block text-xs font-black text-sky-700">Step {index + 1}</span>
+                          {step}
+                        </div>
+                      ))}
+                    </div>
+                  </article>
                 ))}
               </div>
-            </div>
-
-            <label className="mt-5 block text-sm font-semibold text-slate-800" htmlFor="marks">
-              Marks estimate: {marks}%
-            </label>
-            <input
-              id="marks"
-              type="range"
-              min="35"
-              max="98"
-              value={marks}
-              onChange={(event) => setMarks(Number(event.target.value))}
-              className="mt-3 w-full accent-emerald-700"
-            />
-
-            <label className="mt-5 block text-sm font-semibold text-slate-800" htmlFor="budget">
-              Family budget preference
-            </label>
-            <select
-              id="budget"
-              value={budget}
-              onChange={(event) => setBudget(event.target.value)}
-              className="mt-2 h-11 w-full rounded-md border border-input bg-white px-3 text-sm outline-none focus:ring-4 focus:ring-emerald-100"
-            >
-              <option value="low">Low cost first</option>
-              <option value="medium">Balanced options</option>
-              <option value="open">Open to private options</option>
-            </select>
-          </aside>
-
-          <div>
-            <div className="mb-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
-              <div>
-                <p className="text-sm font-semibold uppercase text-emerald-700">Personalized output</p>
-                <h2 className="mt-1 text-3xl font-bold tracking-normal text-slate-950">{text.matches}</h2>
-              </div>
-              <div className="inline-flex items-center gap-2 rounded-md bg-amber-100 px-3 py-2 text-sm font-semibold text-amber-950">
-                <Sparkles className="h-4 w-4" />
-                Demo recommendation engine
-              </div>
-            </div>
-
-            <div className="grid gap-4 lg:grid-cols-3">
-              {matches.map((match) => (
-                <article key={match.title} className="rounded-lg border border-border bg-card p-5 shadow-sm">
-                  <div className="flex items-start justify-between gap-3">
-                    <h3 className="text-lg font-bold leading-tight text-slate-950">{match.title}</h3>
-                    <span className="rounded-md bg-emerald-700 px-2 py-1 text-xs font-bold text-white">
-                      {match.score}%
-                    </span>
-                  </div>
-                  <p className="mt-3 text-sm leading-6 text-slate-600">{match.outcome}</p>
-                  <dl className="mt-4 space-y-3 text-sm">
-                    <div>
-                      <dt className="font-bold text-slate-900">Eligibility</dt>
-                      <dd className="mt-1 text-slate-600">{match.eligibility}</dd>
-                    </div>
-                    <div>
-                      <dt className="font-bold text-slate-900">Entrance / admission</dt>
-                      <dd className="mt-1 text-slate-600">{match.exams.join(", ")}</dd>
-                    </div>
-                    <div>
-                      <dt className="font-bold text-slate-900">Skills to start</dt>
-                      <dd className="mt-1 text-slate-600">{match.skills.join(", ")}</dd>
-                    </div>
-                  </dl>
-                </article>
-              ))}
-            </div>
+            )}
           </div>
         </div>
       </section>
 
-      <section className="bg-[#f7fbf5]">
-        <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[1fr_1fr] lg:px-8">
-          <div>
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-sky-100 text-sky-800">
-                <Award className="h-5 w-5" />
-              </div>
-              <h2 className="text-3xl font-bold tracking-normal text-slate-950">{text.opportunities}</h2>
-            </div>
-            <div className="mt-5 grid gap-3">
-              {scholarships.map((item) => (
-                <div key={item} className="rounded-lg border border-emerald-100 bg-white p-4 shadow-sm">
-                  <p className="text-sm leading-6 text-slate-700">{item}</p>
-                </div>
-              ))}
-            </div>
+      <section id="pathways" className="bg-white">
+        <div className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+          <SectionHeading eyebrow="Career Pathways" title="Explore Career Opportunities" detail="Browse careers across fields. See skills needed, eligibility, income range, demand, and a step-by-step starting plan." />
+          <div className="mt-8 flex flex-wrap gap-2">
+            {categories.map((item) => (
+              <button
+                key={item}
+                type="button"
+                onClick={() => setCategory(item)}
+                className={`inline-flex min-h-9 items-center gap-2 rounded-full px-4 text-sm font-bold transition focus:outline-none focus:ring-4 focus:ring-sky-100 [&_svg]:h-4 [&_svg]:w-4 ${
+                  category === item ? "bg-sky-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                }`}
+              >
+                {iconMap[item]}
+                {item}
+              </button>
+            ))}
           </div>
-
-          <div id="roadmap">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-amber-100 text-amber-900">
-                <BookOpen className="h-5 w-5" />
-              </div>
-              <h2 className="text-3xl font-bold tracking-normal text-slate-950">{text.roadmap}</h2>
-            </div>
-            <div className="mt-5 grid gap-3">
-              {roadmap.map((step) => (
-                <article key={step.week} className="grid grid-cols-[76px_minmax(0,1fr)] gap-4 rounded-lg border border-amber-100 bg-white p-4 shadow-sm">
-                  <div className="rounded-md bg-amber-500 px-2 py-3 text-center text-sm font-bold text-slate-950">
-                    {step.week}
+          <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {filteredPathways.map((path) => {
+              const isExpanded = expanded === path.title;
+              return (
+                <article key={path.title} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition hover:border-sky-200 hover:shadow-lg">
+                  <div className="flex items-center gap-3">
+                    <span className="grid h-10 w-10 place-items-center rounded-lg bg-sky-50 text-sky-700 [&_svg]:h-5 [&_svg]:w-5">{iconMap[path.category]}</span>
+                    <p className="text-sm font-black uppercase text-sky-700">{path.category}</p>
                   </div>
+                  <h3 className="mt-4 text-xl font-black leading-tight text-slate-950">{path.title}</h3>
+                  <p className="mt-3 text-sm leading-6 text-slate-600">{path.description}</p>
+                  <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
+                    <span className="rounded-full bg-emerald-50 px-3 py-1 font-bold text-emerald-700">{path.salary}</span>
+                    <span className="rounded-full bg-amber-50 px-3 py-1 font-bold text-amber-700">{path.demand}</span>
+                  </div>
+                  <button type="button" onClick={() => setExpanded(isExpanded ? null : path.title)} className="mt-4 inline-flex items-center gap-1 text-sm font-black text-sky-700 hover:text-sky-900">
+                    {isExpanded ? "Hide details" : "View details"}
+                    {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </button>
+                  {isExpanded ? (
+                    <div className="mt-4 border-t border-slate-200 pt-4">
+                      <p className="text-sm font-black text-slate-950">Eligibility</p>
+                      <p className="mt-1 text-sm leading-6 text-slate-600">{path.eligibility}</p>
+                      <p className="mt-4 text-sm font-black text-slate-950">Skills to start</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {path.skills.map((skill) => (
+                          <span key={skill} className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">{skill}</span>
+                        ))}
+                      </div>
+                      <p className="mt-4 text-sm font-black text-slate-950">Roadmap</p>
+                      <ol className="mt-2 grid gap-2 text-sm text-slate-600">
+                        {path.roadmap.map((step) => (
+                          <li key={step} className="rounded-lg bg-slate-50 p-3">{step}</li>
+                        ))}
+                      </ol>
+                    </div>
+                  ) : null}
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section id="scholarships" className="border-y border-slate-200 bg-amber-50/50">
+        <div className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+          <SectionHeading eyebrow="Financial Support" title="Find Scholarships for You" detail="Discover scholarships students may be eligible for, from government schemes to national foundations." />
+          <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {scholarships.map((scholarship) => (
+              <article key={scholarship.title} className="flex flex-col rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition hover:border-amber-200 hover:shadow-lg">
+                <h3 className="text-lg font-black leading-tight text-slate-950">{scholarship.title}</h3>
+                <p className="mt-1 text-sm font-bold text-amber-700">{scholarship.provider}</p>
+                <p className="mt-3 text-sm leading-6 text-slate-600">{scholarship.description}</p>
+                <dl className="mt-4 grid gap-3 text-sm">
+                  <InfoTerm label="Amount" value={scholarship.amount} />
+                  <InfoTerm label="Level" value={scholarship.level} />
+                  <InfoTerm label="Deadline" value={scholarship.deadline} />
+                  <InfoTerm label="Eligibility" value={scholarship.eligibility} />
+                </dl>
+                <a className="mt-5 inline-flex items-center gap-1 text-sm font-black text-amber-700 hover:text-amber-900" href={scholarship.url} target="_blank" rel="noreferrer">
+                  How to Apply
+                  <ArrowRight className="h-4 w-4" />
+                </a>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="exams" className="bg-white">
+        <div className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+          <SectionHeading eyebrow="Entrance Examinations" title="Prepare for Entrance Exams" detail="Key information about major entrance exams: eligibility, application period, exam pattern, and topics to prepare." />
+          <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {exams.map((exam) => (
+              <article key={exam.title} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition hover:border-indigo-200 hover:shadow-lg">
+                <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h3 className="font-bold text-slate-950">{step.title}</h3>
-                    <p className="mt-1 text-sm leading-6 text-slate-600">{step.detail}</p>
+                    <h3 className="text-xl font-black text-slate-950">{exam.title}</h3>
+                    <p className="mt-1 text-sm font-semibold text-slate-500">{exam.full}</p>
                   </div>
-                </article>
-              ))}
-            </div>
+                  <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-black uppercase text-indigo-700">{exam.field}</span>
+                </div>
+                <p className="mt-3 text-sm leading-6 text-slate-600">{exam.description}</p>
+                <dl className="mt-4 grid gap-3 text-sm">
+                  <InfoTerm label="Eligibility" value={exam.eligibility} />
+                  <InfoTerm label="Application Period" value={exam.period} />
+                  <InfoTerm label="Exam Pattern" value={exam.pattern} />
+                </dl>
+                <div className="mt-4">
+                  <p className="text-xs font-black uppercase text-slate-500">Key Topics</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {exam.topics.map((topic) => (
+                      <span key={topic} className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">{topic}</span>
+                    ))}
+                  </div>
+                </div>
+                <a className="mt-5 inline-flex items-center gap-1 text-sm font-black text-indigo-700 hover:text-indigo-900" href={exam.url} target="_blank" rel="noreferrer">
+                  Official Website
+                  <ArrowRight className="h-4 w-4" />
+                </a>
+              </article>
+            ))}
           </div>
         </div>
       </section>
 
-      <section className="border-t border-border bg-slate-950 text-white">
-        <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_1fr_1fr] lg:px-8">
-          {[
-            ["For students", "Simple questions, local-language explanations, and career options that do not assume big-city exposure."],
-            ["For mentors", "A clean counselling script with eligibility checks, document reminders, and course suggestions."],
-            ["For the team", "A month-sized build: static data first, then admin uploads, then district-specific opportunity feeds."],
-          ].map(([title, detail]) => (
-            <div key={title}>
-              <GraduationCap className="mb-3 h-6 w-6 text-emerald-300" />
-              <h2 className="text-xl font-bold">{title}</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-300">{detail}</p>
-            </div>
-          ))}
+      <section id="resources" className="border-y border-slate-200 bg-slate-50">
+        <div className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+          <SectionHeading eyebrow="Actionable Guidance" title="Resources to Help You Succeed" detail="Practical guidance and tools that support the journey after choosing a direction." />
+          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {resources.map((resource) => (
+              <article key={resource.title} className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-lg">
+                <span className="grid h-11 w-11 place-items-center rounded-lg bg-sky-50 text-sky-700 [&_svg]:h-5 [&_svg]:w-5">{resource.icon}</span>
+                <h3 className="mt-5 text-lg font-black text-slate-950">{resource.title}</h3>
+                <p className="mt-3 text-sm leading-6 text-slate-600">{resource.detail}</p>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
+
+      <footer className="bg-slate-950 text-white">
+        <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-[1.2fr_0.8fr_1fr] lg:px-8">
+          <div>
+            <div className="flex items-center gap-2 font-black">
+              <span className="grid h-9 w-9 place-items-center rounded-lg bg-sky-500">C</span>
+              CareerMitra
+            </div>
+            <p className="mt-4 max-w-sm text-sm leading-6 text-slate-400">
+              Guiding students toward brighter futures, one practical career step at a time.
+            </p>
+          </div>
+          <div>
+            <h2 className="text-sm font-black uppercase text-slate-300">Quick Links</h2>
+            <div className="mt-4 grid gap-2">
+              {[
+                [text.navAssessment, "#assessment"],
+                [text.navPathways, "#pathways"],
+                [text.navScholarships, "#scholarships"],
+                [text.navExams, "#exams"],
+                [text.navResources, "#resources"],
+              ].map(([label, href]) => (
+                <a key={href} className="text-sm text-slate-400 hover:text-sky-300" href={href}>{label}</a>
+              ))}
+            </div>
+          </div>
+          <div>
+            <h2 className="text-sm font-black uppercase text-slate-300">About</h2>
+            <p className="mt-4 text-sm leading-6 text-slate-400">
+              CareerMitra is a multilingual career guidance platform built to help students make informed decisions with confidence.
+            </p>
+            <p className="mt-5 text-sm text-slate-500">© 2026 CareerMitra. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
     </main>
+  );
+}
+
+function SectionHeading({ eyebrow, title, detail }: { eyebrow: string; title: string; detail: string }) {
+  return (
+    <div className="max-w-3xl">
+      <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-sky-50 px-3 py-2 text-xs font-black uppercase text-sky-800">
+        <Sparkles className="h-3.5 w-3.5" />
+        {eyebrow}
+      </div>
+      <h2 className="text-3xl font-black tracking-normal text-slate-950 sm:text-4xl">{title}</h2>
+      <p className="mt-3 text-base leading-7 text-slate-600">{detail}</p>
+    </div>
+  );
+}
+
+function InfoTerm({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <dt className="font-black text-slate-950">{label}</dt>
+      <dd className="mt-1 leading-6 text-slate-600">{value}</dd>
+    </div>
   );
 }
