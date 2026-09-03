@@ -671,6 +671,7 @@
 
       .upload-item {
         display: flex;
+        align-items: center;
         justify-content: space-between;
         gap: 12px;
         border: 1px solid #e2e8f0;
@@ -678,6 +679,70 @@
         padding: 10px;
         color: #475569;
         font-size: 13px;
+      }
+
+      .upload-item button {
+        flex: 0 0 auto;
+      }
+
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 20;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(15, 23, 42, 0.62);
+        padding: 18px;
+      }
+
+      .modal-backdrop.open {
+        display: flex;
+      }
+
+      .modal {
+        width: min(920px, 100%);
+        max-height: min(760px, 92vh);
+        overflow: hidden;
+        border-radius: var(--radius);
+        background: white;
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+      }
+
+      .modal-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        border-bottom: 1px solid var(--line);
+        padding: 14px 16px;
+      }
+
+      .modal-head h3 {
+        min-width: 0;
+        overflow: hidden;
+        color: #0f172a;
+        font-size: 18px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .modal-body {
+        height: min(640px, 78vh);
+        overflow: auto;
+        padding: 16px;
+      }
+
+      .modal-body img,
+      .modal-body iframe {
+        display: block;
+        width: 100%;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+      }
+
+      .modal-body iframe {
+        height: min(580px, 70vh);
       }
 
       .backend-banner {
@@ -1107,6 +1172,16 @@
       </footer>
     </main>
 
+    <div class="modal-backdrop" id="fileModal" role="dialog" aria-modal="true" aria-labelledby="fileModalTitle">
+      <div class="modal">
+        <div class="modal-head">
+          <h3 id="fileModalTitle">File preview</h3>
+          <button class="mini-btn" type="button" id="closeFileModal">Close</button>
+        </div>
+        <div class="modal-body" id="fileModalBody"></div>
+      </div>
+    </div>
+
     <script>
       const copy = {
         English: {
@@ -1310,6 +1385,19 @@
         localStorage.setItem(databaseKey, JSON.stringify(localDatabase));
       }
 
+      function setAuthMessage(message) {
+        document.getElementById("authStatus").textContent = message;
+      }
+
+      function escapeHtml(value) {
+        return String(value || "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
       function setBackendStatus(message, connected = false) {
         document.getElementById("backendMessage").textContent = message;
         const status = document.getElementById("backendStatus");
@@ -1354,7 +1442,7 @@
         currentProfile = null;
 
         if (!currentUser) {
-          document.getElementById("authStatus").textContent = "Supabase connected. Not signed in.";
+          setAuthMessage("Supabase connected. Not signed in.");
           render();
           return;
         }
@@ -1410,8 +1498,7 @@
           });
         }
 
-        document.getElementById("authStatus").textContent =
-          "Signed in as " + (currentProfile?.role || "user") + ": " + currentUser.email;
+        setAuthMessage("Signed in as " + (currentProfile?.role || "user") + ": " + currentUser.email);
         render();
       }
 
@@ -1420,8 +1507,7 @@
         supabaseClient = createSupabaseClient();
         if (!supabaseClient) {
           setBackendStatus("Supabase config is missing. The page is using local demo storage.");
-          document.getElementById("authStatus").textContent =
-            "Backend config missing. Account buttons will use local demo mode.";
+          setAuthMessage("Backend config missing. Account buttons will use local demo mode.");
           return;
         }
         setBackendStatus("Supabase is connected. Login to save student data, uploads, and ratings online.", true);
@@ -1536,14 +1622,19 @@
             ? `<div class="upload-item"><span>No exam result files uploaded yet.</span><span>0 files</span></div>`
             : student.uploads
                 .map(
-                  (file) => `
+                  (file, index) => `
                     <div class="upload-item">
-                      <span>${file.name}</span>
-                      <span>${Math.ceil(file.size / 1024)} KB</span>
+                      <span>${escapeHtml(file.name)}</span>
+                      <span>${Math.ceil((file.size || 0) / 1024)} KB</span>
+                      <button class="mini-btn" type="button" data-preview-index="${index}">Preview</button>
                     </div>
                   `,
                 )
                 .join("");
+
+        document.querySelectorAll("[data-preview-index]").forEach((button) => {
+          button.addEventListener("click", () => openFilePreview(Number(button.dataset.previewIndex)));
+        });
 
         document.getElementById("mentorCards").innerHTML = mentorDirectory
           .map((mentor) => {
@@ -1575,6 +1666,46 @@
             <span class="tag amber">Mentor to student: ${mentorRating}</span>
           </div>
         `;
+      }
+
+      async function getPreviewSource(file) {
+        if (file.content) return file.content;
+        if (file.path && supabaseClient) {
+          const result = await supabaseClient.storage
+            .from("exam-results")
+            .createSignedUrl(file.path, 60 * 10);
+          if (!result.error) return result.data.signedUrl;
+        }
+        return "";
+      }
+
+      async function openFilePreview(fileIndex) {
+        const file = localDatabase.student.uploads[fileIndex];
+        if (!file) return;
+
+        const source = await getPreviewSource(file);
+        const title = document.getElementById("fileModalTitle");
+        const body = document.getElementById("fileModalBody");
+        title.textContent = file.name;
+
+        if (!source) {
+          body.innerHTML = `<p class="small">Preview is not available for this file yet. Login with Supabase or upload it again in local demo mode.</p>`;
+        } else if ((file.type || "").startsWith("image/")) {
+          body.innerHTML = `<img src="${source}" alt="${escapeHtml(file.name)} preview">`;
+        } else if ((file.type || "").includes("pdf") || file.name.toLowerCase().endsWith(".pdf")) {
+          body.innerHTML = `<iframe src="${source}" title="${escapeHtml(file.name)} preview"></iframe>`;
+        } else {
+          body.innerHTML = `
+            <p class="small">This browser cannot preview this document type directly.</p>
+            <p class="small">File type: ${escapeHtml(file.type || "unknown")}</p>
+            <p class="small">File size: ${Math.ceil((file.size || 0) / 1024)} KB</p>
+            <div class="mini-actions">
+              <a class="mini-btn primary" href="${source}" target="_blank" rel="noopener">Open file</a>
+            </div>
+          `;
+        }
+
+        document.getElementById("fileModal").classList.add("open");
       }
 
       function renderCopy() {
@@ -1618,14 +1749,23 @@
         render();
       });
 
+      document.getElementById("closeFileModal").addEventListener("click", () => {
+        document.getElementById("fileModal").classList.remove("open");
+      });
+
+      document.getElementById("fileModal").addEventListener("click", (event) => {
+        if (event.target.id === "fileModal") {
+          document.getElementById("fileModal").classList.remove("open");
+        }
+      });
+
       document.getElementById("signUpUser").addEventListener("click", async () => {
         if (!supabaseClient) {
           const email = document.getElementById("authEmail").value.trim();
           const role = document.getElementById("authRole").value;
           localSession = { email: email || "demo-user@careermitra.local", role };
           state.account = role;
-          document.getElementById("authStatus").textContent =
-            "Local demo account created as " + role + ". Add Supabase config to save online.";
+          setAuthMessage("Local demo account created as " + role + ". Add Supabase config to save online.");
           setBackendStatus("Using local demo account. Supabase config is still missing.");
           render();
           return;
@@ -1638,7 +1778,7 @@
 
         const signUpResult = await supabaseClient.auth.signUp({ email, password });
         if (signUpResult.error) {
-          alert(signUpResult.error.message);
+          setAuthMessage(signUpResult.error.message + ". If this says email rate limit exceeded, wait a few minutes or use Login with an existing account.");
           return;
         }
 
@@ -1655,7 +1795,7 @@
           });
         }
 
-        alert("Account created. If Supabase email confirmation is enabled, confirm the email before login.");
+        setAuthMessage("Account created. If Supabase email confirmation is enabled, confirm the email before login.");
         await loadRemoteData();
       });
 
@@ -1665,8 +1805,7 @@
           const role = document.getElementById("authRole").value;
           localSession = { email: email || "demo-user@careermitra.local", role };
           state.account = role;
-          document.getElementById("authStatus").textContent =
-            "Logged in locally as " + role + ". Add Supabase config to use the online backend.";
+          setAuthMessage("Logged in locally as " + role + ". Add Supabase config to use the online backend.");
           setBackendStatus("Using local demo login. Supabase config is still missing.");
           render();
           return;
@@ -1676,7 +1815,7 @@
         const password = document.getElementById("authPassword").value;
         const loginResult = await supabaseClient.auth.signInWithPassword({ email, password });
         if (loginResult.error) {
-          alert(loginResult.error.message);
+          setAuthMessage(loginResult.error.message);
           return;
         }
 
@@ -1689,9 +1828,7 @@
         currentUser = null;
         currentProfile = null;
         localSession = null;
-        document.getElementById("authStatus").textContent = supabaseClient
-          ? "Signed out."
-          : "Signed out of local demo mode.";
+        setAuthMessage(supabaseClient ? "Signed out." : "Signed out of local demo mode.");
         render();
       });
 
@@ -1713,6 +1850,8 @@
         localDatabase.student.village = document.getElementById("studentVillage").value.trim();
         localDatabase.student.goal = document.getElementById("studentGoal").value.trim();
         saveDatabase();
+        setAuthMessage("Student details saved on this page.");
+        render();
 
         if (supabaseClient && currentUser) {
           const saveResult = await supabaseClient.from("profiles").upsert({
@@ -1726,15 +1865,14 @@
           });
 
           if (saveResult.error) {
-            alert(saveResult.error.message);
+            setAuthMessage("Saved locally, but Supabase sync failed: " + saveResult.error.message);
             return;
           }
 
+          setAuthMessage("Student details saved to Supabase.");
           await loadRemoteData();
           return;
         }
-
-        render();
       });
 
       document.getElementById("clearStudent").addEventListener("click", () => {
@@ -1755,7 +1893,7 @@
               .upload(filePath, file, { upsert: false });
 
             if (uploadResult.error) {
-              alert(uploadResult.error.message);
+              setAuthMessage("Upload failed: " + uploadResult.error.message);
               return;
             }
 
@@ -1768,12 +1906,13 @@
             });
 
             if (rowResult.error) {
-              alert(rowResult.error.message);
+              setAuthMessage("File uploaded, but database record failed: " + rowResult.error.message);
               return;
             }
           }
 
           event.target.value = "";
+          setAuthMessage("Exam result file uploaded to Supabase.");
           await loadRemoteData();
           return;
         }
@@ -1785,6 +1924,7 @@
                 const reader = new FileReader();
                 reader.onload = () =>
                   resolve({
+                    id: "local-" + Date.now() + "-" + Math.random().toString(16).slice(2),
                     name: file.name,
                     size: file.size,
                     type: file.type || "unknown",
@@ -1799,6 +1939,7 @@
         localDatabase.student.uploads = localDatabase.student.uploads.concat(uploadedFiles);
         saveDatabase();
         event.target.value = "";
+        setAuthMessage("Exam result file saved in local demo storage. Use Preview to view it.");
         render();
       });
 
@@ -1816,10 +1957,11 @@
           });
 
           if (ratingResult.error) {
-            alert(ratingResult.error.message);
+            setAuthMessage("Rating saved locally, but Supabase sync failed: " + ratingResult.error.message);
             return;
           }
 
+          setAuthMessage("Student-to-mentor rating saved to Supabase.");
           await loadRemoteData();
           return;
         }
@@ -1841,10 +1983,11 @@
           });
 
           if (ratingResult.error) {
-            alert(ratingResult.error.message);
+            setAuthMessage("Rating saved locally, but Supabase sync failed: " + ratingResult.error.message);
             return;
           }
 
+          setAuthMessage("Mentor-to-student rating saved to Supabase.");
           await loadRemoteData();
           return;
         }
