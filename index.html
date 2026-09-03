@@ -508,6 +508,178 @@
         margin-top: 4px;
       }
 
+      .account-section {
+        background: white;
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+        padding: 48px 0;
+      }
+
+      .account-grid {
+        display: grid;
+        grid-template-columns: 360px minmax(0, 1fr);
+        gap: 24px;
+        margin-top: 22px;
+      }
+
+      .tabs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 18px;
+      }
+
+      .tab {
+        min-height: 42px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        background: white;
+        color: #334155;
+        cursor: pointer;
+        font-weight: 900;
+      }
+
+      .tab.active {
+        border-color: var(--emerald);
+        background: var(--emerald);
+        color: white;
+      }
+
+      .field {
+        margin-top: 14px;
+      }
+
+      .field input,
+      .field textarea {
+        width: 100%;
+        margin-top: 8px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        background: white;
+        color: #111827;
+        outline: none;
+        padding: 11px 12px;
+      }
+
+      .field textarea {
+        min-height: 84px;
+        resize: vertical;
+      }
+
+      .file-input {
+        border: 1px dashed #9ccfba;
+        background: #f0fdf4;
+        padding: 14px;
+      }
+
+      .mini-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .mini-btn {
+        min-height: 40px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        background: white;
+        color: #0f172a;
+        cursor: pointer;
+        padding: 9px 12px;
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      .mini-btn.primary {
+        border-color: var(--emerald);
+        background: var(--emerald);
+        color: white;
+      }
+
+      .db-note {
+        margin-top: 14px;
+        border-left: 3px solid var(--emerald);
+        background: #f0fdf4;
+        padding: 12px;
+        color: #355246;
+        font-size: 13px;
+        line-height: 1.55;
+      }
+
+      .account-output {
+        display: grid;
+        gap: 16px;
+      }
+
+      .record-card {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--card);
+        padding: 18px;
+        box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
+      }
+
+      .record-card h3 {
+        color: #0f172a;
+        font-size: 20px;
+      }
+
+      .record-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .tag {
+        border-radius: 999px;
+        background: #eef6ff;
+        color: #164e63;
+        padding: 6px 10px;
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .tag.green {
+        background: #ecfdf5;
+        color: #065f46;
+      }
+
+      .tag.amber {
+        background: var(--amber-soft);
+        color: #704300;
+      }
+
+      .rating-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 96px 100px;
+        gap: 10px;
+        align-items: center;
+        margin-top: 14px;
+      }
+
+      .rating-row select {
+        margin-top: 0;
+      }
+
+      .upload-list {
+        display: grid;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .upload-item {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 10px;
+        color: #475569;
+        font-size: 13px;
+      }
+
       footer {
         background: var(--slate);
         color: white;
@@ -540,6 +712,7 @@
         .hero-grid,
         .navigator,
         .two-col,
+        .account-grid,
         .footer-grid {
           grid-template-columns: 1fr;
         }
@@ -579,6 +752,10 @@
 
         .pill {
           white-space: normal;
+        }
+
+        .rating-row {
+          grid-template-columns: 1fr;
         }
       }
     </style>
@@ -683,6 +860,121 @@
               <h2 id="roadmapTitle">Learning roadmap</h2>
             </div>
             <div class="stack" id="roadmapList"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="account-section" id="accounts">
+        <div class="wrap">
+          <p class="kicker">Account and database demo</p>
+          <h2>Student and mentor accounts with uploaded records and ratings.</h2>
+          <p class="hero-copy">
+            This prototype includes two account types. Mentor records are preloaded for students
+            to view, while student profile data, exam result uploads, and ratings are stored in
+            the browser as a local demo database.
+          </p>
+
+          <div class="account-grid">
+            <aside class="panel">
+              <div class="tabs" role="tablist" aria-label="Choose account type">
+                <button class="tab active" type="button" data-account="student">Student</button>
+                <button class="tab" type="button" data-account="mentor">Mentor</button>
+              </div>
+
+              <div id="studentForm">
+                <div class="panel-title">
+                  <div class="icon-box" aria-hidden="true">ST</div>
+                  <div>
+                    <h2>Student account</h2>
+                    <p class="small">Create or update the student record.</p>
+                  </div>
+                </div>
+                <label class="field" for="studentName">Student name
+                  <input id="studentName" type="text" placeholder="Example: Asha Patil" />
+                </label>
+                <label class="field" for="studentClass">Class / stream
+                  <input id="studentClass" type="text" placeholder="Example: Class 12 Science" />
+                </label>
+                <label class="field" for="studentVillage">Village / district
+                  <input id="studentVillage" type="text" placeholder="Example: Sangli, Maharashtra" />
+                </label>
+                <label class="field" for="studentGoal">Career goal
+                  <textarea id="studentGoal" placeholder="Example: I want to become a nurse or health worker."></textarea>
+                </label>
+                <label class="field file-input" for="examUpload">Upload exam results
+                  <input id="examUpload" type="file" multiple accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" />
+                </label>
+                <div class="mini-actions">
+                  <button class="mini-btn primary" type="button" id="saveStudent">Save student data</button>
+                  <button class="mini-btn" type="button" id="clearStudent">Clear student data</button>
+                </div>
+                <p class="db-note">
+                  Demo database: saved in this browser using local storage. For a real school-wide
+                  system, connect this form to Firebase, Supabase, MongoDB, or MySQL.
+                </p>
+              </div>
+
+              <div id="mentorForm" hidden>
+                <div class="panel-title">
+                  <div class="icon-box" aria-hidden="true">MT</div>
+                  <div>
+                    <h2>Mentor account</h2>
+                    <p class="small">Preloaded mentor profile view.</p>
+                  </div>
+                </div>
+                <label class="field" for="mentorSelect">Active mentor
+                  <select id="mentorSelect"></select>
+                </label>
+                <p class="db-note">
+                  Mentor qualifications and experience are already stored in the demo database.
+                  Students can view mentors and rate them after guidance.
+                </p>
+              </div>
+            </aside>
+
+            <div class="account-output">
+              <article class="record-card">
+                <h3>Student database record</h3>
+                <div id="studentRecord"></div>
+                <div class="upload-list" id="uploadList"></div>
+              </article>
+
+              <article class="record-card">
+                <h3>Available mentors</h3>
+                <div id="mentorCards"></div>
+              </article>
+
+              <article class="record-card">
+                <h3>Two-way ratings</h3>
+                <p class="small">
+                  Students can rate mentors for guidance quality, and mentors can rate students
+                  for preparation and follow-through.
+                </p>
+                <div class="rating-row">
+                  <label for="studentRatesMentor">Student rates mentor</label>
+                  <select id="studentRatesMentor">
+                    <option value="5">5 stars</option>
+                    <option value="4">4 stars</option>
+                    <option value="3">3 stars</option>
+                    <option value="2">2 stars</option>
+                    <option value="1">1 star</option>
+                  </select>
+                  <button class="mini-btn primary" type="button" id="saveStudentRating">Save</button>
+                </div>
+                <div class="rating-row">
+                  <label for="mentorRatesStudent">Mentor rates student</label>
+                  <select id="mentorRatesStudent">
+                    <option value="5">5 stars</option>
+                    <option value="4">4 stars</option>
+                    <option value="3">3 stars</option>
+                    <option value="2">2 stars</option>
+                    <option value="1">1 star</option>
+                  </select>
+                  <button class="mini-btn primary" type="button" id="saveMentorRating">Save</button>
+                </div>
+                <div id="ratingSummary"></div>
+              </article>
+            </div>
           </div>
         </div>
       </section>
@@ -831,13 +1123,79 @@
         ["Week 4", "Take action", "Apply for courses, entrance exams, scholarships and a starter learning module."],
       ];
 
+      const mentors = [
+        {
+          id: "mentor-health",
+          name: "Dr. Meera Kulkarni",
+          area: "Health care and nursing",
+          qualification: "MBBS, public health volunteer trainer",
+          experience: "9 years guiding rural students for nursing, ANM, GNM, and health worker pathways.",
+          languages: ["English", "Hindi", "Marathi"],
+        },
+        {
+          id: "mentor-tech",
+          name: "Rahul Deshmukh",
+          area: "Technology and diploma careers",
+          qualification: "B.Tech Computer Engineering, polytechnic mentor",
+          experience: "6 years helping students choose diploma, ITI, coding, and lateral-entry engineering routes.",
+          languages: ["English", "Hindi", "Marathi"],
+        },
+        {
+          id: "mentor-commerce",
+          name: "Nisha Sharma",
+          area: "Commerce, banking, and scholarships",
+          qualification: "M.Com, banking exam counsellor",
+          experience: "7 years supporting scholarship forms, commerce courses, accounts, and bank exam preparation.",
+          languages: ["English", "Hindi"],
+        },
+      ];
+
+      const databaseKey = "careermitraLocalDatabase";
+
+      const defaultDatabase = {
+        student: {
+          name: "Asha Patil",
+          className: "Class 12 Science",
+          village: "Sangli, Maharashtra",
+          goal: "I want career guidance for nursing, health care, or computer diploma options.",
+          uploads: [],
+        },
+        ratings: {
+          studentToMentor: {},
+          mentorToStudent: {},
+        },
+      };
+
       const state = {
         language: "English",
         stream: "science",
         interest: "technology",
         marks: 72,
         budget: "low",
+        account: "student",
+        activeMentor: mentors[0].id,
       };
+
+      function loadDatabase() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(databaseKey));
+          return {
+            student: { ...defaultDatabase.student, ...(saved?.student || {}) },
+            ratings: {
+              studentToMentor: saved?.ratings?.studentToMentor || {},
+              mentorToStudent: saved?.ratings?.mentorToStudent || {},
+            },
+          };
+        } catch {
+          return structuredClone(defaultDatabase);
+        }
+      }
+
+      let localDatabase = loadDatabase();
+
+      function saveDatabase() {
+        localStorage.setItem(databaseKey, JSON.stringify(localDatabase));
+      }
 
       function getMatches() {
         return pathways
@@ -914,6 +1272,79 @@
           .join("");
       }
 
+      function renderAccounts() {
+        document.querySelectorAll(".tab").forEach((tab) => {
+          tab.classList.toggle("active", tab.dataset.account === state.account);
+        });
+
+        document.getElementById("studentForm").hidden = state.account !== "student";
+        document.getElementById("mentorForm").hidden = state.account !== "mentor";
+
+        document.getElementById("studentName").value = localDatabase.student.name || "";
+        document.getElementById("studentClass").value = localDatabase.student.className || "";
+        document.getElementById("studentVillage").value = localDatabase.student.village || "";
+        document.getElementById("studentGoal").value = localDatabase.student.goal || "";
+
+        document.getElementById("mentorSelect").innerHTML = mentors
+          .map((mentor) => `<option value="${mentor.id}">${mentor.name} - ${mentor.area}</option>`)
+          .join("");
+        document.getElementById("mentorSelect").value = state.activeMentor;
+
+        const student = localDatabase.student;
+        document.getElementById("studentRecord").innerHTML = `
+          <div class="record-meta">
+            <span class="tag green">${student.name || "No name saved"}</span>
+            <span class="tag">${student.className || "Class not added"}</span>
+            <span class="tag amber">${student.village || "Location not added"}</span>
+          </div>
+          <p class="small">${student.goal || "Career goal not added yet."}</p>
+        `;
+
+        document.getElementById("uploadList").innerHTML =
+          student.uploads.length === 0
+            ? `<div class="upload-item"><span>No exam result files uploaded yet.</span><span>0 files</span></div>`
+            : student.uploads
+                .map(
+                  (file) => `
+                    <div class="upload-item">
+                      <span>${file.name}</span>
+                      <span>${Math.ceil(file.size / 1024)} KB</span>
+                    </div>
+                  `,
+                )
+                .join("");
+
+        document.getElementById("mentorCards").innerHTML = mentors
+          .map((mentor) => {
+            const studentRating = localDatabase.ratings.studentToMentor[mentor.id] || "Not rated";
+            const mentorRating = localDatabase.ratings.mentorToStudent[mentor.id] || "Not rated";
+            return `
+              <div class="info-card" style="margin-top: 12px;">
+                <h3>${mentor.name}</h3>
+                <div class="record-meta">
+                  <span class="tag green">${mentor.area}</span>
+                  <span class="tag">${mentor.qualification}</span>
+                  <span class="tag amber">${mentor.languages.join(", ")}</span>
+                </div>
+                <p style="margin-top: 10px;">${mentor.experience}</p>
+                <p class="small">Student rating: ${studentRating} | Mentor rating for student: ${mentorRating}</p>
+              </div>
+            `;
+          })
+          .join("");
+
+        const activeMentor = mentors.find((mentor) => mentor.id === state.activeMentor);
+        const studentRating = localDatabase.ratings.studentToMentor[state.activeMentor] || "Not rated";
+        const mentorRating = localDatabase.ratings.mentorToStudent[state.activeMentor] || "Not rated";
+        document.getElementById("ratingSummary").innerHTML = `
+          <div class="record-meta" style="margin-top: 14px;">
+            <span class="tag green">Selected mentor: ${activeMentor.name}</span>
+            <span class="tag">Student to mentor: ${studentRating}</span>
+            <span class="tag amber">Mentor to student: ${mentorRating}</span>
+          </div>
+        `;
+      }
+
       function renderCopy() {
         const text = copy[state.language];
         document.getElementById("badge").textContent = text.badge;
@@ -935,6 +1366,7 @@
         renderCopy();
         renderInterests();
         renderPathways();
+        renderAccounts();
       }
 
       document.getElementById("language").addEventListener("change", (event) => {
@@ -951,6 +1383,73 @@
       });
       document.getElementById("budget").addEventListener("change", (event) => {
         state.budget = event.target.value;
+        render();
+      });
+
+      document.querySelectorAll(".tab").forEach((tab) => {
+        tab.addEventListener("click", () => {
+          state.account = tab.dataset.account;
+          render();
+        });
+      });
+
+      document.getElementById("mentorSelect").addEventListener("change", (event) => {
+        state.activeMentor = event.target.value;
+        render();
+      });
+
+      document.getElementById("saveStudent").addEventListener("click", () => {
+        localDatabase.student.name = document.getElementById("studentName").value.trim();
+        localDatabase.student.className = document.getElementById("studentClass").value.trim();
+        localDatabase.student.village = document.getElementById("studentVillage").value.trim();
+        localDatabase.student.goal = document.getElementById("studentGoal").value.trim();
+        saveDatabase();
+        render();
+      });
+
+      document.getElementById("clearStudent").addEventListener("click", () => {
+        localDatabase.student = { ...defaultDatabase.student, uploads: [] };
+        saveDatabase();
+        render();
+      });
+
+      document.getElementById("examUpload").addEventListener("change", async (event) => {
+        const files = Array.from(event.target.files || []);
+        const uploadedFiles = await Promise.all(
+          files.map(
+            (file) =>
+              new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = () =>
+                  resolve({
+                    name: file.name,
+                    size: file.size,
+                    type: file.type || "unknown",
+                    uploadedAt: new Date().toISOString(),
+                    content: reader.result,
+                  });
+                reader.readAsDataURL(file);
+              }),
+          ),
+        );
+
+        localDatabase.student.uploads = localDatabase.student.uploads.concat(uploadedFiles);
+        saveDatabase();
+        event.target.value = "";
+        render();
+      });
+
+      document.getElementById("saveStudentRating").addEventListener("click", () => {
+        localDatabase.ratings.studentToMentor[state.activeMentor] =
+          document.getElementById("studentRatesMentor").value + " stars";
+        saveDatabase();
+        render();
+      });
+
+      document.getElementById("saveMentorRating").addEventListener("click", () => {
+        localDatabase.ratings.mentorToStudent[state.activeMentor] =
+          document.getElementById("mentorRatesStudent").value + " stars";
+        saveDatabase();
         render();
       });
 
