@@ -1045,6 +1045,7 @@
                   <button class="mini-btn primary" type="button" id="signUpUser">Create account</button>
                   <button class="mini-btn" type="button" id="signInUser">Login</button>
                   <button class="mini-btn" type="button" id="signOutUser">Logout</button>
+                  <button class="mini-btn" type="button" id="resetSession">Reset demo session</button>
                 </div>
               </div>
 
@@ -1452,10 +1453,16 @@
 
         const profileId = currentUser?.id || localStorage.getItem(profileSessionKey);
         const payload = getProfilePayload(role);
-        const request = profileId
-          ? supabaseClient.from("profiles").update(payload).eq("id", profileId).select("*").single()
-          : supabaseClient.from("profiles").insert(payload).select("*").single();
-        const result = await request;
+        let result = profileId
+          ? await supabaseClient.from("profiles").update(payload).eq("id", profileId).select("*").maybeSingle()
+          : await supabaseClient.from("profiles").insert(payload).select("*").single();
+
+        if (profileId && !result.data) {
+          localStorage.removeItem(profileSessionKey);
+          currentUser = null;
+          currentProfile = null;
+          result = await supabaseClient.from("profiles").insert(payload).select("*").single();
+        }
 
         if (!result.error && result.data) {
           applyProfile(result.data);
@@ -1873,6 +1880,15 @@
         localSession = null;
         localStorage.removeItem(profileSessionKey);
         setAuthMessage(supabaseClient ? "Signed out of demo account." : "Signed out of local demo mode.");
+        render();
+      });
+
+      document.getElementById("resetSession").addEventListener("click", () => {
+        currentUser = null;
+        currentProfile = null;
+        localSession = null;
+        localStorage.removeItem(profileSessionKey);
+        setAuthMessage("Demo session reset. Press Create account or Save student data to record a fresh profile.");
         render();
       });
 
